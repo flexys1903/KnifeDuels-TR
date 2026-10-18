@@ -75,7 +75,7 @@ local Config = {
     CrosshairSize = 10,
     
     -- Mobile
-    ShowMobileButton = true, -- Mobilde otomatik aktif olması için düzeltildi
+    ShowMobileButton = true,
     MobileAutoAttack = false,
     MobileAutoJump = false,
 
@@ -710,7 +710,6 @@ MobileAimButton.Text = "NİŞAN"
 MobileAimButton.TextColor3 = Theme.TextWhite
 MobileAimButton.TextSize = 14
 
--- Mobilde sürükleme ve tıklama çakışmasını önleyen kusursuz dokunmatik mantık
 local isDraggingMobile, hasMovedMobile, dragStartAim, startPosAim
 MobileAimButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -932,6 +931,22 @@ RunService.RenderStepped:Connect(function()
         if Config.Aimbot and isAimingKey and closestTarget then
             local newCFrame = CFrame.new(cam.CFrame.Position, closestTarget.Position)
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
+        end
+
+        -- Mobil uyumlu düzeltilmiş AutoAttack (Tool Activate)
+        if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if isPartVisible(closestTarget, closestTarget.Parent) then
+                if tick() - lastAutoAttackTick > 0.2 then
+                    lastAutoAttackTick = tick()
+                    local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
+                    if dist <= Config.StabDistance then
+                        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                        if tool then
+                            tool:Activate()
+                        end
+                    end
+                end
+            end
         end
 
         if Config.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
