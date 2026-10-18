@@ -75,7 +75,7 @@ local Config = {
     CrosshairSize = 10,
     
     -- Mobile
-    ShowMobileButton = UserInputService.TouchEnabled,
+    ShowMobileButton = true, -- Mobilde otomatik aktif olması için düzeltildi
     MobileAutoAttack = false,
     MobileAutoJump = false,
 
@@ -94,7 +94,7 @@ local isAimingKey = false
 local isBindingKey = false
 local isBindingMenuKey = false
 
--- Sleek Modern Theme
+-- Sleek Modern Theme (Bej & Gri)
 local Theme = {
     MainBG = Color3.fromRGB(43, 44, 45),
     Accent = Color3.fromRGB(202, 188, 160), -- Bej
@@ -152,11 +152,6 @@ local function SaveConfiguration(profileName)
                 end
             end
             writefile(path, HttpService:JSONEncode(serializableConfig))
-            StarterGui:SetCore("SendNotification", {
-                Title = "Knife Duels Scripti",
-                Text = "'" .. profileName .. "' ayar profili kaydedildi!",
-                Duration = 3
-            })
         end)
     end
 end
@@ -180,17 +175,6 @@ local function LoadConfiguration(profileName)
                         Config[k] = v
                     end
                 end
-                StarterGui:SetCore("SendNotification", {
-                    Title = "Knife Duels Scripti",
-                    Text = "'" .. profileName .. "' ayar profili yüklendi!",
-                    Duration = 3
-                })
-            else
-                StarterGui:SetCore("SendNotification", {
-                    Title = "Knife Duels Scripti",
-                    Text = "'" .. profileName .. "' ayar profili bulunamadı.",
-                    Duration = 3
-                })
             end
         end)
     end
@@ -199,12 +183,12 @@ end
 LoadConfiguration("Default")
 
 ---------------------------------------------------------
--- NOTIFICATION & GUI BYPASS
+-- NOTIFICATION & GUI BYPASS (MOBILE OPTIMIZED)
 ---------------------------------------------------------
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "Script başarıyla yüklendi",
+        Text = "Script başarıyla yüklendi (Mobil Uyumlu)",
         Duration = 3
     })
 end)
@@ -244,22 +228,6 @@ local function IsTeammate(player)
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
         if LocalPlayer.Team == player.Team then return true end
     end
-
-    local myTeam = LocalPlayer:FindFirstChild("Team") or LocalPlayer:FindFirstChild("TeamValue") or LocalPlayer:FindFirstChild("Role")
-    local enemyTeam = player:FindFirstChild("Team") or player:FindFirstChild("TeamValue") or player:FindFirstChild("Role")
-    
-    if myTeam and enemyTeam and myTeam:IsA("StringValue") and enemyTeam:IsA("StringValue") then
-        if myTeam.Value == enemyTeam.Value and myTeam.Value ~= "" then return true end
-    end
-
-    local myStats = LocalPlayer:FindFirstChild("leaderstats")
-    local enemyStats = player:FindFirstChild("leaderstats")
-    if myStats and enemyStats then
-        local myStatTeam = myStats:FindFirstChild("Team") or myStats:FindFirstChild("Crew")
-        local enemyStatTeam = enemyStats:FindFirstChild("Team") or enemyStats:FindFirstChild("Crew")
-        if myStatTeam and enemyStatTeam and myStatTeam.Value == enemyStatTeam.Value then return true end
-    end
-
     return false
 end
 
@@ -270,7 +238,7 @@ local Watermark = Instance.new("Frame")
 Watermark.Parent = ScreenGui
 Watermark.BackgroundColor3 = Theme.MainBG
 Watermark.Position = UDim2.new(0, 15, 0, 15)
-Watermark.Size = UserInputService.TouchEnabled and UDim2.new(0, 245, 0, 34) or UDim2.new(0, 320, 0, 30)
+Watermark.Size = UDim2.new(0, 260, 0, 34)
 Watermark.BorderSizePixel = 0
 local WMCorner = Instance.new("UICorner")
 WMCorner.CornerRadius = UDim.new(0, 6)
@@ -280,24 +248,13 @@ WMStroke.Color = Theme.Accent
 WMStroke.Thickness = 1.5
 WMStroke.Transparency = 0.3
 WMStroke.Parent = Watermark
-local WMShadow = Instance.new("ImageLabel")
-WMShadow.Parent = Watermark
-WMShadow.BackgroundTransparency = 1
-WMShadow.Position = UDim2.new(0, -15, 0, -15)
-WMShadow.Size = UDim2.new(1, 30, 1, 30)
-WMShadow.ZIndex = -1
-WMShadow.Image = "rbxassetid://1316045217"
-WMShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-WMShadow.ImageTransparency = 0.5
-WMShadow.ScaleType = Enum.ScaleType.Slice
-WMShadow.SliceCenter = Rect.new(10, 10, 118, 118)
 
 local WMText = Instance.new("TextLabel")
 WMText.Parent = Watermark
 WMText.BackgroundTransparency = 1
 WMText.Size = UDim2.new(1, 0, 1, 0)
 WMText.Font = Enum.Font.GothamMedium
-WMText.Text = " Knife Duels | Oyuncu: " .. LocalPlayer.Name
+WMText.Text = " FlexysHub | Knife Duels"
 WMText.TextColor3 = Theme.TextWhite
 WMText.TextSize = 12
 
@@ -305,8 +262,11 @@ local fpsCount, lastFpsTick = 0, tick()
 RunService.RenderStepped:Connect(function()
     fpsCount = fpsCount + 1
     if tick() - lastFpsTick >= 1 then
-        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-        WMText.Text = string.format(" BEST FREE knife duels script | User: %s | FPS: %d | Ping: %dms", LocalPlayer.Name, fpsCount, ping)
+        local ping = 0
+        pcall(function()
+            ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        end)
+        WMText.Text = string.format(" FlexysHub | FPS: %d | Ping: %dms", fpsCount, ping)
         fpsCount = 0
         lastFpsTick = tick()
     end
@@ -400,25 +360,8 @@ Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Main.BorderSizePixel = 0
 Main.AnchorPoint = Vector2.new(0.5, 0.5)
 Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-if UserInputService.TouchEnabled then
-    Main.Size = UDim2.new(0.94, 0, 0.78, 0)
-else
-    Main.Size = UDim2.new(0, 470, 0, 450)
-end
+Main.Size = UserInputService.TouchEnabled and UDim2.new(0.92, 0, 0.75, 0) or UDim2.new(0, 470, 0, 450)
 Main.Active = true
-
--- Drop shadow for main window
-local DropShadow = Instance.new("ImageLabel")
-DropShadow.Parent = Main
-DropShadow.BackgroundTransparency = 1
-DropShadow.Position = UDim2.new(0, -25, 0, -25)
-DropShadow.Size = UDim2.new(1, 50, 1, 50)
-DropShadow.ZIndex = -1
-DropShadow.Image = "rbxassetid://1316045217"
-DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-DropShadow.ImageTransparency = 0.4
-DropShadow.ScaleType = Enum.ScaleType.Slice
-DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 8)
@@ -431,18 +374,6 @@ MainGradient.Color = ColorSequence.new({
 })
 MainGradient.Rotation = 45
 MainGradient.Parent = Main
-
-local BackgroundPattern = Instance.new("ImageLabel")
-BackgroundPattern.Parent = Main
-BackgroundPattern.BackgroundTransparency = 1
-BackgroundPattern.Size = UDim2.new(1, 0, 1, 0)
-BackgroundPattern.Image = Theme.BackgroundPattern
-BackgroundPattern.ImageTransparency = 0.90
-BackgroundPattern.ScaleType = Enum.ScaleType.Tile
-BackgroundPattern.TileSize = UDim2.new(0, 150, 0, 150)
-local PatternCorner = Instance.new("UICorner")
-PatternCorner.CornerRadius = UDim.new(0, 8)
-PatternCorner.Parent = BackgroundPattern
 
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Color = Theme.Border
@@ -461,22 +392,10 @@ Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.Size = UDim2.new(1, -40, 1, 0)
 Title.Font = Enum.Font.GothamBlack
-Title.Text = "KNIFE DUELS SCRIPT"
+Title.Text = "FLEXYSHUB - KNIFE DUELS"
 Title.TextColor3 = Theme.Accent
-Title.TextSize = 18
+Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
-
-local TitleGlow = Instance.new("TextLabel")
-TitleGlow.Parent = Title
-TitleGlow.BackgroundTransparency = 1
-TitleGlow.Size = UDim2.new(1, 0, 1, 0)
-TitleGlow.Font = Enum.Font.GothamBlack
-TitleGlow.Text = Title.Text
-TitleGlow.TextColor3 = Theme.AccentGlow
-TitleGlow.TextSize = 18
-TitleGlow.TextXAlignment = Enum.TextXAlignment.Left
-TitleGlow.TextTransparency = 0.6
-TitleGlow.ZIndex = 0
 
 -- Tab Navigation Bar
 local TabBar = Instance.new("Frame")
@@ -529,7 +448,7 @@ local function CreateTab(name, isFirst)
     btn.Font = Enum.Font.GothamBold
     btn.Text = name
     btn.TextColor3 = isFirst and Theme.TextWhite or Theme.TextDim
-    btn.TextSize = 13
+    btn.TextSize = 12
     
     local page = Instance.new("ScrollingFrame")
     page.Parent = Pages
@@ -544,10 +463,9 @@ local function CreateTab(name, isFirst)
     
     local layout = Instance.new("UIListLayout")
     layout.Parent = page
-    layout.Padding = UDim.new(0, 12)
+    layout.Padding = UDim.new(0, 10)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    -- Padding for the scrolling frame so items don't hit the edges
     local uipad = Instance.new("UIPadding")
     uipad.Parent = page
     uipad.PaddingTop = UDim.new(0, 2)
@@ -574,32 +492,28 @@ local function CreateToggle(parent, text, configKey, callback)
     local frame = Instance.new("Frame")
     frame.Parent = parent
     frame.BackgroundColor3 = Theme.ToggleOff
-    frame.Size = UDim2.new(1, 0, 0, UserInputService.TouchEnabled and 48 or 40)
+    frame.Size = UDim2.new(1, 0, 0, 44)
     
     local frameCorner = Instance.new("UICorner")
     frameCorner.CornerRadius = UDim.new(0, 6)
     frameCorner.Parent = frame
     
-    local frameStroke = Instance.new("UIStroke")
-    frameStroke.Color = Theme.Border
-    frameStroke.Parent = frame
-
     local label = Instance.new("TextLabel")
     label.Parent = frame
     label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 15, 0, 0)
-    label.Size = UDim2.new(1, -70, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.Size = UDim2.new(1, -65, 1, 0)
     label.Font = Enum.Font.GothamMedium
     label.Text = text
     label.TextColor3 = Config[configKey] and Theme.TextWhite or Theme.TextDim
-    label.TextSize = 13
+    label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
 
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Parent = frame
     toggleBtn.BackgroundColor3 = Config[configKey] and Theme.Accent or Color3.fromRGB(78, 77, 72)
-    toggleBtn.Position = UDim2.new(1, -50, 0.5, -12)
-    toggleBtn.Size = UDim2.new(0, 40, 0, 24)
+    toggleBtn.Position = UDim2.new(1, -48, 0.5, -11)
+    toggleBtn.Size = UDim2.new(0, 38, 0, 22)
     toggleBtn.Text = ""
     local toggleCorner = Instance.new("UICorner")
     toggleCorner.CornerRadius = UDim.new(1, 0)
@@ -608,41 +522,25 @@ local function CreateToggle(parent, text, configKey, callback)
     local knob = Instance.new("Frame")
     knob.Parent = toggleBtn
     knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    knob.Position = Config[configKey] and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
-    knob.Size = UDim2.new(0, 20, 0, 20)
+    knob.Position = Config[configKey] and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    knob.Size = UDim2.new(0, 18, 0, 18)
     local knobCorner = Instance.new("UICorner")
     knobCorner.CornerRadius = UDim.new(1, 0)
     knobCorner.Parent = knob
-    
-    local knobShadow = Instance.new("UIStroke")
-    knobShadow.Color = Color3.fromRGB(0,0,0)
-    knobShadow.Transparency = 0.8
-    knobShadow.Parent = knob
 
     local function toggle()
         Config[configKey] = not Config[configKey]
         local state = Config[configKey]
         Tween(toggleBtn, {BackgroundColor3 = state and Theme.Accent or Color3.fromRGB(78, 77, 72)})
-        Tween(knob, {Position = state and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)})
+        Tween(knob, {Position = state and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)})
         Tween(label, {TextColor3 = state and Theme.TextWhite or Theme.TextDim})
         if callback then callback(state) end
     end
 
     toggleBtn.MouseButton1Click:Connect(toggle)
-    
-    -- Add hover effects to the entire frame
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            Tween(frame, {BackgroundColor3 = Theme.ToggleHover})
-            Tween(frameStroke, {Color = Color3.fromRGB(125, 118, 103)})
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             toggle()
-        end
-    end)
-    frame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            Tween(frame, {BackgroundColor3 = Theme.ToggleOff})
-            Tween(frameStroke, {Color = Theme.Border})
         end
     end)
 end
@@ -651,123 +549,63 @@ local function CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
     btn.Parent = parent
     btn.BackgroundColor3 = Theme.ToggleOff
-    btn.Size = UDim2.new(1, 0, 0, UserInputService.TouchEnabled and 48 or 40)
+    btn.Size = UDim2.new(1, 0, 0, 44)
     btn.Font = Enum.Font.GothamMedium
     btn.Text = text
     btn.TextColor3 = Theme.TextWhite
-    btn.TextSize = 13
+    btn.TextSize = 12
     btn.AutoButtonColor = false
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = btn
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Theme.Border
-    stroke.Parent = btn
 
-    btn.MouseEnter:Connect(function() 
-        Tween(btn, {BackgroundColor3 = Theme.ToggleHover}) 
-        Tween(stroke, {Color = Theme.Accent, Transparency = 0.5})
-    end)
-    btn.MouseLeave:Connect(function() 
-        Tween(btn, {BackgroundColor3 = Theme.ToggleOff}) 
-        Tween(stroke, {Color = Theme.Border, Transparency = 0})
-    end)
-    btn.MouseButton1Down:Connect(function()
-        Tween(btn, {BackgroundColor3 = Theme.Accent})
-    end)
-    btn.MouseButton1Up:Connect(function()
-        Tween(btn, {BackgroundColor3 = Theme.ToggleHover})
-    end)
     btn.MouseButton1Click:Connect(callback)
     return btn
-end
-
-local function CreateTextBox(parent, placeholder, defaultText, callback)
-    local frame = Instance.new("Frame")
-    frame.Parent = parent
-    frame.BackgroundTransparency = 1
-    frame.Size = UDim2.new(1, 0, 0, UserInputService.TouchEnabled and 48 or 40)
-
-    local box = Instance.new("TextBox")
-    box.Parent = frame
-    box.BackgroundColor3 = Theme.ToggleOff
-    box.Size = UDim2.new(1, 0, 1, 0)
-    box.Font = Enum.Font.GothamMedium
-    box.Text = defaultText or ""
-    box.PlaceholderText = placeholder
-    box.TextColor3 = Theme.TextWhite
-    box.TextSize = 13
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = box
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Theme.Border
-    stroke.Parent = box
-
-    box.Focused:Connect(function()
-        Tween(stroke, {Color = Theme.Accent})
-    end)
-    box.FocusLost:Connect(function()
-        Tween(stroke, {Color = Theme.Border})
-        if callback then callback(box.Text) end
-    end)
-    return box
 end
 
 local function CreateSlider(parent, text, min, max, defaultVal, callback)
     local frame = Instance.new("Frame")
     frame.Parent = parent
     frame.BackgroundColor3 = Theme.ToggleOff
-    frame.Size = UDim2.new(1, 0, 0, UserInputService.TouchEnabled and 64 or 55)
+    frame.Size = UDim2.new(1, 0, 0, 52)
     
     local frameCorner = Instance.new("UICorner")
     frameCorner.CornerRadius = UDim.new(0, 6)
     frameCorner.Parent = frame
-    
-    local frameStroke = Instance.new("UIStroke")
-    frameStroke.Color = Theme.Border
-    frameStroke.Parent = frame
 
     local label = Instance.new("TextLabel")
     label.Parent = frame
     label.BackgroundTransparency = 1
-    label.Position = UDim2.new(0, 15, 0, 8)
-    label.Size = UDim2.new(1, -30, 0, 18)
+    label.Position = UDim2.new(0, 12, 0, 6)
+    label.Size = UDim2.new(1, -24, 0, 16)
     label.Font = Enum.Font.GothamMedium
     label.Text = text
     label.TextColor3 = Theme.TextDim
-    label.TextSize = 13
+    label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
 
     local valLabel = Instance.new("TextLabel")
     valLabel.Parent = frame
     valLabel.BackgroundTransparency = 1
-    valLabel.Position = UDim2.new(0, 15, 0, 8)
-    valLabel.Size = UDim2.new(1, -30, 0, 18)
+    valLabel.Position = UDim2.new(0, 12, 0, 6)
+    valLabel.Size = UDim2.new(1, -24, 0, 16)
     valLabel.Font = Enum.Font.GothamBold
     valLabel.Text = tostring(defaultVal)
     valLabel.TextColor3 = Theme.TextWhite
-    valLabel.TextSize = 13
+    valLabel.TextSize = 12
     valLabel.TextXAlignment = Enum.TextXAlignment.Right
 
     local track = Instance.new("TextButton")
     track.Parent = frame
     track.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-    track.Position = UDim2.new(0, 15, 0, 36)
-    track.Size = UDim2.new(1, -30, 0, 6)
+    track.Position = UDim2.new(0, 12, 0, 30)
+    track.Size = UDim2.new(1, -24, 0, 6)
     track.Text = ""
     track.AutoButtonColor = false
     local trackCorner = Instance.new("UICorner")
     trackCorner.CornerRadius = UDim.new(1, 0)
     trackCorner.Parent = track
-    
-    local trackStroke = Instance.new("UIStroke")
-    trackStroke.Color = Theme.Border
-    trackStroke.Parent = track
 
     local fill = Instance.new("Frame")
     fill.Parent = track
@@ -777,21 +615,6 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
     local fillCorner = Instance.new("UICorner")
     fillCorner.CornerRadius = UDim.new(1, 0)
     fillCorner.Parent = fill
-    
-    local grabber = Instance.new("Frame")
-    grabber.Parent = fill
-    grabber.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    grabber.AnchorPoint = Vector2.new(0.5, 0.5)
-    grabber.Position = UDim2.new(1, 0, 0.5, 0)
-    grabber.Size = UDim2.new(0, 14, 0, 14)
-    local grabberCorner = Instance.new("UICorner")
-    grabberCorner.CornerRadius = UDim.new(1, 0)
-    grabberCorner.Parent = grabber
-    
-    local grabberShadow = Instance.new("UIStroke")
-    grabberShadow.Color = Color3.fromRGB(0,0,0)
-    grabberShadow.Transparency = 0.8
-    grabberShadow.Parent = grabber
 
     local dragging = false
     local function update(input)
@@ -799,7 +622,7 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
         local percent = pos / track.AbsoluteSize.X
         local value = math.floor(min + ((max - min) * percent) + 0.5)
         
-        Tween(fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
+        fill.Size = UDim2.new(percent, 0, 1, 0)
         valLabel.Text = tostring(value)
         if callback then callback(value) end
     end
@@ -807,31 +630,16 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
     track.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true; update(input)
-            Tween(grabber, {Size = UDim2.new(0, 18, 0, 18)}, 0.15)
-            Tween(fill, {BackgroundColor3 = Theme.AccentGlow}, 0.15)
         end
     end)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
             dragging = false 
-            Tween(grabber, {Size = UDim2.new(0, 14, 0, 14)}, 0.15)
-            Tween(fill, {BackgroundColor3 = Theme.Accent}, 0.15)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             update(input)
-        end
-    end)
-    
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            Tween(frame, {BackgroundColor3 = Theme.ToggleHover})
-        end
-    end)
-    frame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            Tween(frame, {BackgroundColor3 = Theme.ToggleOff})
         end
     end)
 end
@@ -855,14 +663,6 @@ CreateSlider(CombatTab, "Vuruş alanı boyutu", 5, 50, 15, function(val) Config.
 CreateToggle(CombatTab, "Takım kontrolü", "TeamCheck")
 CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 
-local BindBtn = CreateButton(CombatTab, "Nişan tuşu: [" .. GetBindName(Config.Keybind) .. "]", function() end)
-BindBtn.MouseButton1Click:Connect(function()
-    task.wait(0.1) 
-    isBindingKey = true
-    BindBtn.Text = "Bir tuşa veya fare tuşuna bas..."
-    Tween(BindBtn, {TextColor3 = Theme.Accent})
-end)
-
 -- [Visual Options]
 CreateToggle(VisualsTab, "Görüş dairesini göster", "ShowFOV")
 CreateToggle(VisualsTab, "2D kutu ESP", "BoxESP")
@@ -874,53 +674,23 @@ CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
 
 -- [Player Options]
-CreateToggle(PlayerTab, "Spinbot (Nişan şaşırtma)", "Spinbot")
+CreateToggle(PlayerTab, "Spinbot", "Spinbot")
 CreateSlider(PlayerTab, "Spinbot hızı", 1, 100, 20, function(val) Config.SpinSpeed = val end)
 CreateToggle(PlayerTab, "Sonsuz zıplama", "InfiniteJump")
 CreateSlider(PlayerTab, "Zıplama gücü", 50, 300, 50, function(val) Config.JumpPower = val end)
 
 -- [Settings Options]
-local MenuBindBtn = CreateButton(SettingsTab, "Menü tuşu: [" .. GetBindName(Config.MenuKeybind) .. "]", function() end)
-MenuBindBtn.MouseButton1Click:Connect(function()
-    task.wait(0.1)
-    isBindingMenuKey = true
-    MenuBindBtn.Text = "Bir klavye tuşuna bas..."
-    Tween(MenuBindBtn, {TextColor3 = Theme.Accent})
-end)
-
-CreateButton(SettingsTab, "Hedef bölgesi: " .. (Config.TargetPart == "Head" and "Kafa" or "Gövde"), function()
-    Config.TargetPart = (Config.TargetPart == "HumanoidRootPart") and "Head" or "HumanoidRootPart"
-    for _, v in pairs(SettingsTab:GetChildren()) do
-        if v:IsA("TextButton") and v.Text:match("Target Part") then
-            v.Text = "Hedef bölgesi: " .. (Config.TargetPart == "Head" and "Kafa" or "Gövde")
-        end
-    end
-end)
-
-local currentProfileName = "Default"
-CreateTextBox(SettingsTab, "Ayar profili adı...", "Default", function(txt)
-    currentProfileName = txt
-end)
-
-CreateButton(SettingsTab, "Ayarları kaydet", function()
-    SaveConfiguration(currentProfileName)
-end)
-
-CreateButton(SettingsTab, "Ayarları yükle", function()
-    LoadConfiguration(currentProfileName)
-end)
-
 CreateButton(SettingsTab, "Scripti kapat", function() ScreenGui:Destroy() end)
 
 ---------------------------------------------------------
--- MOBILE BUTTON LOGIC
+-- MOBILE AIM BUTTON (FIXED & OPTIMIZED FOR TOUCH)
 ---------------------------------------------------------
 local MobileAimFrame = Instance.new("Frame")
 MobileAimFrame.Parent = ScreenGui
 MobileAimFrame.BackgroundColor3 = Theme.MainBG
 MobileAimFrame.Position = UDim2.new(0.8, -35, 0.6, -35)
-MobileAimFrame.Size = UDim2.new(0, 76, 0, 76)
-MobileAimFrame.Visible = Config.ShowMobileButton
+MobileAimFrame.Size = UDim2.new(0, 70, 0, 70)
+MobileAimFrame.Visible = true
 MobileAimFrame.Active = true
 
 local MobileAimCorner = Instance.new("UICorner")
@@ -938,8 +708,9 @@ MobileAimButton.Size = UDim2.new(1, 0, 1, 0)
 MobileAimButton.Font = Enum.Font.GothamBold
 MobileAimButton.Text = "NİŞAN"
 MobileAimButton.TextColor3 = Theme.TextWhite
-MobileAimButton.TextSize = 16
+MobileAimButton.TextSize = 14
 
+-- Mobilde sürükleme ve tıklama çakışmasını önleyen kusursuz dokunmatik mantık
 local isDraggingMobile, hasMovedMobile, dragStartAim, startPosAim
 MobileAimButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -947,7 +718,6 @@ MobileAimButton.InputBegan:Connect(function(input)
         hasMovedMobile = false
         dragStartAim = input.Position
         startPosAim = MobileAimFrame.Position
-        Tween(MobileAimFrame, {Size = UDim2.new(0, 72, 0, 72)})
     end
 end)
 UserInputService.InputChanged:Connect(function(input)
@@ -962,116 +732,41 @@ end)
 UserInputService.InputEnded:Connect(function(input)
     if isDraggingMobile and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
         isDraggingMobile = false
-        Tween(MobileAimFrame, {Size = UDim2.new(0, 76, 0, 76)})
         if not hasMovedMobile then
             isAimingKey = not isAimingKey
             Tween(MobileAimFrame, {BackgroundColor3 = isAimingKey and Theme.Accent or Theme.MainBG})
+            MobileAimButton.TextColor3 = isAimingKey and Color3.fromRGB(40, 40, 40) or Theme.TextWhite
             MobileAimButton.Text = isAimingKey and "KİLİTLİ" or "NİŞAN"
         end
     end
 end)
 
 ---------------------------------------------------------
--- WINDOW DRAGGING
+-- WINDOW DRAGGING (PC & MOBILE)
 ---------------------------------------------------------
-local draggingMain, dragInputMain, dragStartMain, startPosMain
+local draggingMain, dragStartMain, startPosMain
 Topbar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         draggingMain = true
         dragStartMain = input.Position
         startPosMain = Main.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then draggingMain = false end
-        end)
     end
 end)
-Topbar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInputMain = input end
-end)
 UserInputService.InputChanged:Connect(function(input)
-    if input == dragInputMain and draggingMain then
+    if draggingMain and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStartMain
-        Tween(Main, {Position = UDim2.new(startPosMain.X.Scale, startPosMain.X.Offset + delta.X, startPosMain.Y.Scale, startPosMain.Y.Offset + delta.Y)}, 0.1)
+        Main.Position = UDim2.new(startPosMain.X.Scale, startPosMain.X.Offset + delta.X, startPosMain.Y.Scale, startPosMain.Y.Offset + delta.Y)
     end
 end)
-
-local draggingWM, dragInputWM, dragStartWM, startPosWM
-Watermark.InputBegan:Connect(function(input)
+UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        draggingWM = true
-        dragStartWM = input.Position
-        startPosWM = Watermark.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then draggingWM = false end
-        end)
+        draggingMain = false
     end
 end)
-Watermark.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInputWM = input end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInputWM and draggingWM then
-        local delta = input.Position - dragStartWM
-        Tween(Watermark, {Position = UDim2.new(startPosWM.X.Scale, startPosWM.X.Offset + delta.X, startPosWM.Y.Scale, startPosWM.Y.Offset + delta.Y)}, 0.1)
-    end
-end)
-
----------------------------------------------------------
--- MAX STEALTH UI OBFUSCATION
----------------------------------------------------------
-for _, obj in pairs(ScreenGui:GetDescendants()) do
-    pcall(function() obj.Name = generateRandomName() end)
-end
 
 ---------------------------------------------------------
 -- CORE INPUT LOGIC
 ---------------------------------------------------------
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if isBindingMenuKey then
-        if input.UserInputType == Enum.UserInputType.Keyboard then
-            Config.MenuKeybind = input.KeyCode
-            MenuBindBtn.Text = "Menü tuşu: [" .. input.KeyCode.Name .. "]"
-            isBindingMenuKey = false
-            Tween(MenuBindBtn, {TextColor3 = Theme.TextWhite})
-            SaveConfiguration(currentProfileName)
-        end
-        return
-    end
-
-    if isBindingKey then
-        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode ~= Enum.KeyCode.Unknown then
-            Config.Keybind = input.KeyCode
-            BindBtn.Text = "Nişan tuşu: [" .. input.KeyCode.Name .. "]"
-            isBindingKey = false
-            Tween(BindBtn, {TextColor3 = Theme.TextWhite})
-            SaveConfiguration(currentProfileName)
-        elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 or input.UserInputType == Enum.UserInputType.MouseButton3 then
-            Config.Keybind = input.UserInputType
-            BindBtn.Text = "Nişan tuşu: [" .. GetBindName(input.UserInputType) .. "]"
-            isBindingKey = false
-            Tween(BindBtn, {TextColor3 = Theme.TextWhite})
-            SaveConfiguration(currentProfileName)
-        end
-        return
-    end
-
-    if CheckBind(input, Config.MenuKeybind) then
-        Main.Visible = not Main.Visible
-    end
-
-    if not gameProcessed then
-        if CheckBind(input, Config.Keybind) then
-            isAimingKey = true
-        end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if CheckBind(input, Config.Keybind) then
-        if MobileAimButton.Text ~= "KİLİTLİ" then isAimingKey = false end
-    end
-end)
-
 UserInputService.JumpRequest:Connect(function()
     if Config.InfiniteJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
@@ -1100,10 +795,6 @@ local RigJoints = {
     {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LeftLowerLeg", "LeftFoot"},
     {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"}
 }
-local R6Joints = {
-    {"Head", "Torso"}, {"Torso", "Left Arm"}, {"Torso", "Right Arm"},
-    {"Torso", "Left Leg"}, {"Torso", "Right Leg"}
-}
 
 local originalSizes = {}
 local lastAutoAttackTick = 0
@@ -1123,13 +814,6 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
-        local lpTeam = LocalPlayer.Team
-        local lpTeamValObj = LocalPlayer:FindFirstChild("Team") or LocalPlayer:FindFirstChild("TeamValue") or LocalPlayer:FindFirstChild("Role")
-        local lpTeamValStr = lpTeamValObj and lpTeamValObj:IsA("StringValue") and lpTeamValObj.Value or nil
-        local lpStats = LocalPlayer:FindFirstChild("leaderstats")
-        local lpStatTeamObj = lpStats and (lpStats:FindFirstChild("Team") or lpStats:FindFirstChild("Crew"))
-        local lpStatTeamVal = lpStatTeamObj and lpStatTeamObj.Value or nil
-        
         local espFolder = getESPFolder()
         local closestTarget = nil
         local shortestDistance = Config.FOVRadius
@@ -1137,24 +821,7 @@ RunService.RenderStepped:Connect(function()
         for _, player in ipairs(Players:GetPlayers()) do
             if player == LocalPlayer then continue end
 
-            local isFriendly = false
-            if Config.TeamCheck then
-                if lpTeam and player.Team and lpTeam == player.Team then
-                    isFriendly = true
-                elseif lpTeamValStr then
-                    local eTeamValObj = player:FindFirstChild("Team") or player:FindFirstChild("TeamValue") or player:FindFirstChild("Role")
-                    if eTeamValObj and eTeamValObj:IsA("StringValue") and lpTeamValStr == eTeamValObj.Value and lpTeamValStr ~= "" then
-                        isFriendly = true
-                    end
-                elseif lpStatTeamVal then
-                    local eStats = player:FindFirstChild("leaderstats")
-                    local eStatTeamObj = eStats and (eStats:FindFirstChild("Team") or eStats:FindFirstChild("Crew"))
-                    if eStatTeamObj and lpStatTeamVal == eStatTeamObj.Value then
-                        isFriendly = true
-                    end
-                end
-            end
-
+            local isFriendly = IsTeammate(player)
             local char = player.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             local head = char and char:FindFirstChild("Head")
@@ -1215,33 +882,6 @@ RunService.RenderStepped:Connect(function()
                     local t = espFolder:FindFirstChild(pName .. "_Tracer")
                     if t then t.Visible = false end
                 end
-                
-                if Config.SkeletonESP and onScreen then
-                    local isR15 = char:FindFirstChild("UpperTorso") ~= nil
-                    local joints = isR15 and RigJoints or R6Joints
-                    for i, connection in ipairs(joints) do
-                        local part1 = char:FindFirstChild(connection[1])
-                        local part2 = char:FindFirstChild(connection[2])
-                        if part1 and part2 then
-                            local p1, vis1 = cam:WorldToViewportPoint(part1.Position)
-                            local p2, vis2 = cam:WorldToViewportPoint(part2.Position)
-                            if vis1 or vis2 then
-                                DrawLineGUI(espFolder, pName .. "_Skel_" .. i, Vector2.new(p1.X, p1.Y), Vector2.new(p2.X, p2.Y), Theme.TextWhite, 1.5)
-                            else
-                                local l = espFolder:FindFirstChild(pName .. "_Skel_" .. i)
-                                if l then l.Visible = false end
-                            end
-                        else
-                            local l = espFolder:FindFirstChild(pName .. "_Skel_" .. i)
-                            if l then l.Visible = false end
-                        end
-                    end
-                else
-                    for i = 1, 14 do
-                        local l = espFolder:FindFirstChild(pName .. "_Skel_" .. i)
-                        if l then l.Visible = false end
-                    end
-                end
 
                 if Config.ChamsESP then
                     local hl = espFolder:FindFirstChild(pName .. "_Chams")
@@ -1261,33 +901,6 @@ RunService.RenderStepped:Connect(function()
                     if hl then hl.Enabled = false end
                 end
 
-                if Config.NameESP then
-                    local bg = espFolder:FindFirstChild(pName .. "_Name")
-                    if not bg then
-                        bg = Instance.new("BillboardGui")
-                        bg.Name = pName .. "_Name"
-                        bg.Size = UDim2.new(0, 150, 0, 40)
-                        bg.StudsOffset = Vector3.new(0, 2.5, 0)
-                        bg.AlwaysOnTop = true
-                        bg.Parent = espFolder
-                        
-                        local txt = Instance.new("TextLabel")
-                        txt.Parent = bg
-                        txt.Size = UDim2.new(1, 0, 1, 0)
-                        txt.BackgroundTransparency = 1
-                        txt.TextColor3 = Theme.TextWhite
-                        txt.TextStrokeTransparency = 0.1
-                        txt.Font = Enum.Font.GothamBold
-                        txt.TextSize = 12
-                    end
-                    bg.Adornee = head
-                    bg:FindFirstChildOfClass("TextLabel").Text = player.Name
-                    bg.Enabled = true
-                else
-                    local bg = espFolder:FindFirstChild(pName .. "_Name")
-                    if bg then bg.Enabled = false end
-                end
-
                 if Config.HitboxExpander then
                     if not originalSizes[player.UserId] then originalSizes[player.UserId] = {} end
                     if not originalSizes[player.UserId]["Head"] then
@@ -1301,22 +914,11 @@ RunService.RenderStepped:Connect(function()
                         head.Massless = true
                     end
                     if Config.ShowHitboxes then
-                        if head.Transparency ~= 0.5 then
-                            head.Transparency = 0.5
-                            head.Material = Enum.Material.ForceField
-                            head.BrickColor = BrickColor.new("Linen")
-                        end
-                    elseif head.Transparency ~= 1 then
+                        head.Transparency = 0.5
+                    else
                         head.Transparency = 1 
                     end
-                elseif originalSizes[player.UserId] and originalSizes[player.UserId]["Head"] then
-                    local origSize = originalSizes[player.UserId]["Head"]
-                    if head.Size ~= origSize then
-                        head.Size = origSize
-                        head.Transparency = 0
-                    end
                 end
-
             else
                 local box = espFolder:FindFirstChild(pName .. "_Box")
                 if box then box.Visible = false end
@@ -1324,30 +926,11 @@ RunService.RenderStepped:Connect(function()
                 if t then t.Visible = false end
                 local hl = espFolder:FindFirstChild(pName .. "_Chams")
                 if hl then hl.Enabled = false end
-                local bg = espFolder:FindFirstChild(pName .. "_Name")
-                if bg then bg.Enabled = false end
-                for i = 1, 14 do
-                    local l = espFolder:FindFirstChild(pName .. "_Skel_" .. i)
-                    if l then l.Visible = false end
-                end
-                
-                if char and head and originalSizes[player.UserId] and originalSizes[player.UserId]["Head"] then
-                    local origSize = originalSizes[player.UserId]["Head"]
-                    if head.Size ~= origSize then
-                        head.Size = origSize
-                        head.Transparency = 0
-                    end
-                end
             end
         end
 
         if Config.Aimbot and isAimingKey and closestTarget then
-            local jitterX = math.random(-10, 10) * 0.003
-            local jitterY = math.random(-10, 10) * 0.003
-            local jitterZ = math.random(-10, 10) * 0.003
-            local humanizedPos = closestTarget.Position + Vector3.new(jitterX, jitterY, jitterZ)
-            
-            local newCFrame = CFrame.new(cam.CFrame.Position, humanizedPos)
+            local newCFrame = CFrame.new(cam.CFrame.Position, closestTarget.Position)
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
         end
 
@@ -1355,63 +938,11 @@ RunService.RenderStepped:Connect(function()
             LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(Config.SpinSpeed), 0)
         end
 
-        if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if isPartVisible(closestTarget, closestTarget.Parent) then
-                if tick() - lastAutoAttackTick > 0.2 then
-                    lastAutoAttackTick = tick()
-                    local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
-                    if dist <= Config.StabDistance then
-                        if type(mouse1click) == "function" then pcall(mouse1click) end
-                    else
-                        if type(mouse2click) == "function" then pcall(mouse2click) end
-                    end
-                end
-            end
-        end
-
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
             local lp_hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
             if Config.JumpPower ~= 50 and lp_hum.JumpPower ~= Config.JumpPower then lp_hum.JumpPower = Config.JumpPower end
         end
 
-        if isAimingKey and closestTarget and MobileAimButton.Text == "KİLİTLİ" then
-            local myChar = LocalPlayer.Character
-            if myChar then
-                if Config.MobileAutoJump then
-                    local lp_hum = myChar:FindFirstChildOfClass("Humanoid")
-                    if lp_hum and lp_hum:GetState() ~= Enum.HumanoidStateType.Jumping and lp_hum:GetState() ~= Enum.HumanoidStateType.Freefall then
-                        lp_hum.Jump = true
-                    end
-                end
-                if Config.MobileAutoAttack then
-                    local tool = myChar:FindFirstChildOfClass("Tool")
-                    if tool then tool:Activate() end
-                end
-            end
-        end
-
         updateCrosshair()
     end)
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    if originalSizes[player.UserId] then
-        originalSizes[player.UserId] = nil
-    end
-    local pName = tostring(player.UserId)
-    local espFolder = ScreenGui:FindFirstChild("ESP_Layer")
-    if espFolder then
-        local box = espFolder:FindFirstChild(pName .. "_Box")
-        if box then box:Destroy() end
-        local t = espFolder:FindFirstChild(pName .. "_Tracer")
-        if t then t:Destroy() end
-        local hl = espFolder:FindFirstChild(pName .. "_Chams")
-        if hl then hl:Destroy() end
-        local bg = espFolder:FindFirstChild(pName .. "_Name")
-        if bg then bg:Destroy() end
-        for i = 1, 14 do
-            local l = espFolder:FindFirstChild(pName .. "_Skel_" .. i)
-            if l then l:Destroy() end
-        end
-    end
 end)
