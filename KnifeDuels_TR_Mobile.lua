@@ -12,7 +12,6 @@ local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
-local TeleportService = game:GetService("TeleportService")
 local Stats = game:GetService("Stats")
 
 local LocalPlayer = Players.LocalPlayer
@@ -53,7 +52,7 @@ local Config = {
     -- Combat
     Aimbot = false,      
     AutoAttack = false,
-    StabDistance = 15,
+    StabDistance = 25, -- Mobilde mesafeyi biraz genişlettik ki daha rahat vursun
     HitboxExpander = false, 
     ShowHitboxes = false,
     HitboxSize = 15,
@@ -91,8 +90,6 @@ local Config = {
 
 -- Input & State Tracking
 local isAimingKey = false
-local isBindingKey = false
-local isBindingMenuKey = false
 
 -- Sleek Modern Theme (Bej & Gri)
 local Theme = {
@@ -108,87 +105,12 @@ local Theme = {
 }
 
 ---------------------------------------------------------
--- KEYBIND CHECK HELPERS
----------------------------------------------------------
-local function GetBindName(bind)
-    if typeof(bind) == "EnumItem" then
-        if bind == Enum.UserInputType.MouseButton1 then return "Sol tık" end
-        if bind == Enum.UserInputType.MouseButton2 then return "Sağ tık" end
-        if bind == Enum.UserInputType.MouseButton3 then return "Orta tık" end
-        return bind.Name
-    end
-    return "..."
-end
-
-local function CheckBind(input, bind)
-    if typeof(bind) == "EnumItem" then
-        if bind.EnumType == Enum.KeyCode and input.UserInputType == Enum.UserInputType.Keyboard then
-            return input.KeyCode == bind
-        elseif bind.EnumType == Enum.UserInputType then
-            return input.UserInputType == bind
-        end
-    end
-    return false
-end
-
----------------------------------------------------------
--- FILESYSTEM CONFIG MANAGER (MULTI-PROFILE)
----------------------------------------------------------
-local function SaveConfiguration(profileName)
-    profileName = profileName or "Default"
-    local path = ConfigFolder .. "/" .. profileName .. ".json"
-    
-    if type(writefile) == "function" and type(makefolder) == "function" then
-        pcall(function()
-            if type(isfolder) == "function" and not isfolder(ConfigFolder) then
-                makefolder(ConfigFolder)
-            end
-            local serializableConfig = {}
-            for k, v in pairs(Config) do
-                if typeof(v) == "EnumItem" then
-                    serializableConfig[k] = {Type = tostring(v.EnumType), Name = v.Name}
-                else
-                    serializableConfig[k] = v
-                end
-            end
-            writefile(path, HttpService:JSONEncode(serializableConfig))
-        end)
-    end
-end
-
-local function LoadConfiguration(profileName)
-    profileName = profileName or "Default"
-    local path = ConfigFolder .. "/" .. profileName .. ".json"
-    
-    if type(readfile) == "function" and type(isfile) == "function" then
-        pcall(function()
-            if isfile(path) then
-                local decoded = HttpService:JSONDecode(readfile(path))
-                for k, v in pairs(decoded) do
-                    if type(v) == "table" and v.Type and v.Name then
-                        if v.Type == "UserInputType" then
-                            Config[k] = Enum.UserInputType[v.Name]
-                        elseif v.Type == "KeyCode" then
-                            Config[k] = Enum.KeyCode[v.Name]
-                        end
-                    else
-                        Config[k] = v
-                    end
-                end
-            end
-        end)
-    end
-end
-
-LoadConfiguration("Default")
-
----------------------------------------------------------
 -- NOTIFICATION & GUI BYPASS (MOBILE OPTIMIZED)
 ---------------------------------------------------------
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "Script başarıyla yüklendi (Mobil Uyumlu)",
+        Text = "Script başarıyla yüklendi (FlexysHub)",
         Duration = 3
     })
 end)
@@ -656,7 +578,7 @@ local SettingsTab = CreateTab("Ayarlar", false)
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
 CreateToggle(CombatTab, "Otomatik saldırı (Sapla/Fırlat)", "AutoAttack")
-CreateSlider(CombatTab, "Saplama mesafesi", 5, 30, 15, function(val) Config.StabDistance = val end)
+CreateSlider(CombatTab, "Saplama mesafesi", 5, 50, 25, function(val) Config.StabDistance = val end)
 CreateToggle(CombatTab, "Vuruş alanını genişlet", "HitboxExpander")
 CreateToggle(CombatTab, "Vuruş alanlarını göster", "ShowHitboxes")
 CreateSlider(CombatTab, "Vuruş alanı boyutu", 5, 50, 15, function(val) Config.HitboxSize = val end)
@@ -683,14 +605,67 @@ CreateSlider(PlayerTab, "Zıplama gücü", 50, 300, 50, function(val) Config.Jum
 CreateButton(SettingsTab, "Scripti kapat", function() ScreenGui:Destroy() end)
 
 ---------------------------------------------------------
--- MOBILE AIM BUTTON (FIXED & OPTIMIZED FOR TOUCH)
+-- MENU TOGGLE BUTTON (KÜÇÜK YUVARLAK AÇ/KAPA DAİRESİ)
+---------------------------------------------------------
+local MenuToggleFrame = Instance.new("Frame")
+MenuToggleFrame.Parent = ScreenGui
+MenuToggleFrame.BackgroundColor3 = Theme.MainBG
+MenuToggleFrame.Position = UDim2.new(0, 15, 0.5, -20)
+MenuToggleFrame.Size = UDim2.new(0, 42, 0, 42)
+MenuToggleFrame.Active = true
+
+local MenuToggleCorner = Instance.new("UICorner")
+MenuToggleCorner.CornerRadius = UDim.new(1, 0)
+MenuToggleCorner.Parent = MenuToggleFrame
+local MenuToggleStroke = Instance.new("UIStroke")
+MenuToggleStroke.Color = Theme.Accent
+MenuToggleStroke.Thickness = 2
+MenuToggleStroke.Parent = MenuToggleFrame
+
+local MenuToggleButton = Instance.new("TextButton")
+MenuToggleButton.Parent = MenuToggleFrame
+MenuToggleButton.BackgroundTransparency = 1
+MenuToggleButton.Size = UDim2.new(1, 0, 1, 0)
+MenuToggleButton.Font = Enum.Font.GothamBold
+MenuToggleButton.Text = "FX"
+MenuToggleButton.TextColor3 = Theme.Accent
+MenuToggleButton.TextSize = 14
+
+local isDraggingMenuToggle, hasMovedMenuToggle, dragStartMenuToggle, startPosMenuToggle
+MenuToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDraggingMenuToggle = true
+        hasMovedMenuToggle = false
+        dragStartMenuToggle = input.Position
+        startPosMenuToggle = MenuToggleFrame.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if isDraggingMenuToggle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStartMenuToggle
+        if delta.Magnitude > 5 then
+            hasMovedMenuToggle = true
+            MenuToggleFrame.Position = UDim2.new(startPosMenuToggle.X.Scale, startPosMenuToggle.X.Offset + delta.X, startPosMenuToggle.Y.Scale, startPosMenuToggle.Y.Offset + delta.Y)
+        end
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if isDraggingMenuToggle and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        isDraggingMenuToggle = false
+        if not hasMovedMenuToggle then
+            Main.Visible = not Main.Visible
+        end
+    end
+end)
+
+---------------------------------------------------------
+-- MOBILE AIM BUTTON (KİLİTLEME/NİŞAN DAİRESİ)
 ---------------------------------------------------------
 local MobileAimFrame = Instance.new("Frame")
 MobileAimFrame.Parent = ScreenGui
 MobileAimFrame.BackgroundColor3 = Theme.MainBG
 MobileAimFrame.Position = UDim2.new(0.8, -35, 0.6, -35)
 MobileAimFrame.Size = UDim2.new(0, 70, 0, 70)
-MobileAimFrame.Visible = true
 MobileAimFrame.Active = true
 
 local MobileAimCorner = Instance.new("UICorner")
@@ -786,14 +761,6 @@ local function isPartVisible(targetPart, targetCharacter)
     local result = Workspace:Raycast(origin, targetPart.Position - origin, raycastParams)
     return (not result) or (result.Instance:IsDescendantOf(targetCharacter))
 end
-
-local RigJoints = {
-    {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"},
-    {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"LeftLowerArm", "LeftHand"},
-    {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"}, {"RightLowerArm", "RightHand"},
-    {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LeftLowerLeg", "LeftFoot"},
-    {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"}
-}
 
 local originalSizes = {}
 local lastAutoAttackTick = 0
@@ -933,17 +900,17 @@ RunService.RenderStepped:Connect(function()
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
         end
 
-        -- Mobil uyumlu düzeltilmiş AutoAttack (Tool Activate)
+        -- Mobil uyumlu ve kesintisiz çalışan AutoAttack mantığı
         if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if isPartVisible(closestTarget, closestTarget.Parent) then
-                if tick() - lastAutoAttackTick > 0.2 then
-                    lastAutoAttackTick = tick()
-                    local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
-                    if dist <= Config.StabDistance then
-                        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                        if tool then
+            if tick() - lastAutoAttackTick > 0.15 then
+                lastAutoAttackTick = tick()
+                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
+                if dist <= Config.StabDistance then
+                    local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                    if tool then
+                        pcall(function()
                             tool:Activate()
-                        end
+                        end)
                     end
                 end
             end
