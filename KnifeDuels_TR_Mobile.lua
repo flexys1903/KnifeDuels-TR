@@ -13,6 +13,7 @@ local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
 local Stats = game:GetService("Stats")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -28,7 +29,7 @@ if successInfo and info and string.find(string.lower(info.Name), "knife duels") 
     isKnifeDuels = true
 end
 
-if game:GetService("ReplicatedStorage"):FindFirstChild("CombatService") or game:GetService("ReplicatedStorage"):FindFirstChild("KnifeService") then
+if ReplicatedStorage:FindFirstChild("CombatService") or ReplicatedStorage:FindFirstChild("KnifeService") then
     isKnifeDuels = true
 end
 
@@ -52,7 +53,7 @@ local Config = {
     -- Combat
     Aimbot = false,      
     AutoAttack = false,
-    StabDistance = 25, -- Mobilde mesafeyi biraz genişlettik ki daha rahat vursun
+    StabDistance = 30, -- Mesafeyi biraz daha artırdık
     HitboxExpander = false, 
     ShowHitboxes = false,
     HitboxSize = 15,
@@ -578,7 +579,7 @@ local SettingsTab = CreateTab("Ayarlar", false)
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
 CreateToggle(CombatTab, "Otomatik saldırı (Sapla/Fırlat)", "AutoAttack")
-CreateSlider(CombatTab, "Saplama mesafesi", 5, 50, 25, function(val) Config.StabDistance = val end)
+CreateSlider(CombatTab, "Saplama mesafesi", 5, 50, 30, function(val) Config.StabDistance = val end)
 CreateToggle(CombatTab, "Vuruş alanını genişlet", "HitboxExpander")
 CreateToggle(CombatTab, "Vuruş alanlarını göster", "ShowHitboxes")
 CreateSlider(CombatTab, "Vuruş alanı boyutu", 5, 50, 15, function(val) Config.HitboxSize = val end)
@@ -900,9 +901,9 @@ RunService.RenderStepped:Connect(function()
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
         end
 
-        -- Mobil uyumlu ve kesintisiz çalışan AutoAttack mantığı
+        -- Geliştirilmiş ve Alternatif Tetiklemeli AutoAttack (Tool + RemoteEvent Desteği)
         if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if tick() - lastAutoAttackTick > 0.15 then
+            if tick() - lastAutoAttackTick > 0.1 then
                 lastAutoAttackTick = tick()
                 local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
                 if dist <= Config.StabDistance then
@@ -910,6 +911,12 @@ RunService.RenderStepped:Connect(function()
                     if tool then
                         pcall(function()
                             tool:Activate()
+                            -- Bazı oyunlardaki remote event tetiklemeleri için ek deneme
+                            for _, v in pairs(tool:GetDescendants()) do
+                                if v:IsA("RemoteEvent") then
+                                    v:FireServer(closestTarget.Position)
+                                end
+                            end
                         end)
                     end
                 end
