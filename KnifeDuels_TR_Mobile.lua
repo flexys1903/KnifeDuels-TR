@@ -1,6 +1,3 @@
-Harika fikir kanka, oyunun içindeki tüm bıçakları içeren kapsamlı bir SkinChanger sekmesini arayüze ekliyorum.
-Bu sayede menüden istediğin bıçağı seçebileceksin ve karakterinin elindeki bıçak sadece senin ekranında (Client-side) seçtiğin modele dönüşecek. Sunucu korumasına takılmadan dilediğin gibi takılabileceksin.
-Scriptin SkinChanger sekmesi eklenmiş, optimize edilmiş ve yuvarlak FX açma/kapama tuşu ile mobil uyumlu hali hazır:
 -- Wait for the game to load
 if not game:IsLoaded() then
     game.Loaded:Wait()
@@ -95,13 +92,11 @@ local Config = {
     MenuKeybind = Enum.KeyCode.RightControl
 }
 
--- Input & State Tracking
 local isAimingKey = false
 
--- Sleek Modern Theme (Bej & Gri)
 local Theme = {
     MainBG = Color3.fromRGB(43, 44, 45),
-    Accent = Color3.fromRGB(202, 188, 160), -- Bej
+    Accent = Color3.fromRGB(202, 188, 160),
     AccentGlow = Color3.fromRGB(230, 218, 194),
     TextWhite = Color3.fromRGB(242, 239, 232),
     TextDim = Color3.fromRGB(176, 171, 161),
@@ -111,13 +106,10 @@ local Theme = {
     BackgroundPattern = "rbxassetid://2151741365"
 }
 
----------------------------------------------------------
--- NOTIFICATION & GUI BYPASS (MOBILE OPTIMIZED)
----------------------------------------------------------
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub + SkinChanger yüklendi!",
+        Text = "FlexysHub (Tüm Özellikler) Yüklendi!",
         Duration = 3
     })
 end)
@@ -147,9 +139,6 @@ pcall(function()
     elseif ProtectInstance then ProtectInstance(ScreenGui) end
 end)
 
----------------------------------------------------------
--- UNIVERSAL TEAM CHECK
----------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
@@ -160,9 +149,6 @@ local function IsTeammate(player)
     return false
 end
 
----------------------------------------------------------
--- CUSTOM WATERMARK
----------------------------------------------------------
 local Watermark = Instance.new("Frame")
 Watermark.Parent = ScreenGui
 Watermark.BackgroundColor3 = Theme.MainBG
@@ -200,10 +186,6 @@ RunService.RenderStepped:Connect(function()
         lastFpsTick = tick()
     end
 end)
-
----------------------------------------------------------
--- UI BASED ESP UTILITIES 
----------------------------------------------------------
 local function getESPFolder()
     local folder = ScreenGui:FindFirstChild("ESP_Layer")
     if not folder then
@@ -280,9 +262,6 @@ local function updateCrosshair()
     for _, line in pairs(CrosshairLines) do line.Visible = true end
 end
 
----------------------------------------------------------
--- REMASTERED TABBED UI CONSTRUCTION
----------------------------------------------------------
 local Main = Instance.new("Frame")
 Main.Parent = ScreenGui
 Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -326,7 +305,6 @@ Title.TextColor3 = Theme.Accent
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Tab Navigation Bar
 local TabBar = Instance.new("Frame")
 TabBar.Parent = Main
 TabBar.BackgroundTransparency = 1
@@ -359,9 +337,6 @@ Pages.BackgroundTransparency = 1
 Pages.Position = UDim2.new(0, 15, 0, 100)
 Pages.Size = UDim2.new(1, -30, 1, -115)
 
----------------------------------------------------------
--- UI COMPONENT GENERATORS
----------------------------------------------------------
 local TabsList = {}
 
 local function CreateTab(name, isFirst)
@@ -572,17 +547,12 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
         end
     end)
 end
-
----------------------------------------------------------
--- POPULATE TABBED UI
----------------------------------------------------------
 local CombatTab = CreateTab("Savaş", true)
 local VisualsTab = CreateTab("Görünüm", false)
 local SkinsTab = CreateTab("Skinler", false)
 local PlayerTab = CreateTab("Oyuncu", false)
 local SettingsTab = CreateTab("Ayarlar", false)
 
--- [Combat Options]
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
 CreateToggle(CombatTab, "Otomatik saldırı (Sapla/Fırlat)", "AutoAttack")
@@ -593,7 +563,6 @@ CreateSlider(CombatTab, "Vuruş alanı boyutu", 5, 50, 15, function(val) Config.
 CreateToggle(CombatTab, "Takım kontrolü", "TeamCheck")
 CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 
--- [Visual Options]
 CreateToggle(VisualsTab, "Görüş dairesini göster", "ShowFOV")
 CreateToggle(VisualsTab, "2D kutu ESP", "BoxESP")
 CreateToggle(VisualsTab, "İskelet ESP", "SkeletonESP")
@@ -603,7 +572,6 @@ CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
 CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
 
--- [SkinChanger Options - Oyundaki Tüm Bıçaklar]
 local knifeList = {
     "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
     "Bayonet", "Flip Knife", "Gut Knife", "Huntsman Knife", 
@@ -619,15 +587,7 @@ for _, knifeName in ipairs(knifeList) do
             local char = LocalPlayer.Character
             local tool = char and char:FindFirstChildOfClass("Tool")
             if tool then
-                -- Client-side isim/görünüm güncelleme simülasyonu
                 tool.Name = knifeName
-                if tool:FindFirstChild("Handle") then
-                    for _, v in pairs(tool.Handle:GetChildren()) do
-                        if v:IsA("SpecialMesh") or v:IsA("MeshPart") then
-                            -- Model dönüştürme client entegrasyonu
-                        end
-                    end
-                end
             end
         end)
         StarterGui:SetCore("SendNotification", {
@@ -638,18 +598,13 @@ for _, knifeName in ipairs(knifeList) do
     end)
 end
 
--- [Player Options]
 CreateToggle(PlayerTab, "Spinbot", "Spinbot")
 CreateSlider(PlayerTab, "Spinbot hızı", 1, 100, 20, function(val) Config.SpinSpeed = val end)
 CreateToggle(PlayerTab, "Sonsuz zıplama", "InfiniteJump")
 CreateSlider(PlayerTab, "Zıplama gücü", 50, 300, 50, function(val) Config.JumpPower = val end)
 
--- [Settings Options]
 CreateButton(SettingsTab, "Scripti kapat", function() ScreenGui:Destroy() end)
 
----------------------------------------------------------
--- MENU TOGGLE BUTTON (KÜÇÜK YUVARLAK AÇ/KAPA DAİRESİ)
----------------------------------------------------------
 local MenuToggleFrame = Instance.new("Frame")
 MenuToggleFrame.Parent = ScreenGui
 MenuToggleFrame.BackgroundColor3 = Theme.MainBG
@@ -701,9 +656,6 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
----------------------------------------------------------
--- MOBILE AIM BUTTON (KİLİTLEME/NİŞAN DAİRESİ)
----------------------------------------------------------
 local MobileAimFrame = Instance.new("Frame")
 MobileAimFrame.Parent = ScreenGui
 MobileAimFrame.BackgroundColor3 = Theme.MainBG
@@ -758,9 +710,6 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
----------------------------------------------------------
--- WINDOW DRAGGING (PC & MOBILE)
----------------------------------------------------------
 local draggingMain, dragStartMain, startPosMain
 Topbar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -781,18 +730,12 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
----------------------------------------------------------
--- CORE INPUT LOGIC
----------------------------------------------------------
 UserInputService.JumpRequest:Connect(function()
     if Config.InfiniteJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
----------------------------------------------------------
--- THE MASTER LOOP: ESP, FOV, & HITBOX ENGINE
----------------------------------------------------------
 local function isPartVisible(targetPart, targetCharacter)
     local cam = Workspace.CurrentCamera
     if not cam then return false end
@@ -941,6 +884,21 @@ RunService.RenderStepped:Connect(function()
         if Config.Aimbot and isAimingKey and closestTarget then
             local newCFrame = CFrame.new(cam.CFrame.Position, closestTarget.Position)
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
+        end
+
+        if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if tick() - lastAutoAttackTick > 0.1 then
+                lastAutoAttackTick = tick()
+                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
+                if dist <= Config.StabDistance then
+                    local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                    if tool then
+                        pcall(function()
+                            tool:Activate()
+                        end)
+                    end
+                end
+            end
         end
 
         if Config.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
