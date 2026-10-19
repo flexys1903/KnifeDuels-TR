@@ -14,6 +14,7 @@ local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
 local Stats = game:GetService("Stats")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -75,8 +76,8 @@ local Config = {
     CrosshairSize = 10,
     
     -- SkinChanger
-    SelectedKnife = "Varsayılan Bıçak",
-    SelectedSkin = "Varsayılan Kaplama",
+    SelectedKnife = "Glass Karambit",
+    SelectedSkin = "Ruby",
 
     -- Mobile
     ShowMobileButton = true,
@@ -115,7 +116,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub + Tüm Skinler Yüklendi!",
+        Text = "FlexysHub + Gelişmiş SkinChanger Yüklendi!",
         Duration = 3
     })
 end)
@@ -549,8 +550,7 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
         local percent = pos / track.AbsoluteSize.X
         local value = math.floor(min + ((max - min) * percent) + 0.5)
         
-        
-fill.Size = UDim2.new(percent, 0, 1, 0)
+        fill.Size = UDim2.new(percent, 0, 1, 0)
         valLabel.Text = tostring(value)
         if callback then callback(value) end
     end
@@ -584,7 +584,7 @@ local SettingsTab = CreateTab("Ayarlar", false)
 -- [Combat Options]
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
-CreateToggle(CombatTab, "Otomatik saldırı (Sapla/Fırlat)", "AutoAttack")
+CreateToggle(CombatTab, "Otomatik saldırı (Deneysel)", "AutoAttack")
 CreateSlider(CombatTab, "Saplama mesafesi", 5, 50, 30, function(val) Config.StabDistance = val end)
 CreateToggle(CombatTab, "Vuruş alanını genişlet", "HitboxExpander")
 CreateToggle(CombatTab, "Vuruş alanlarını göster", "ShowHitboxes")
@@ -602,9 +602,9 @@ CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
 CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
 
--- [SkinChanger Options - Oyundaki Tüm Bıçaklar ve Kaplamalar]
+-- [Gelişmiş SkinChanger (Glass Karambit ve Tüm Özel Bıçaklar)]
 local knifeList = {
-    "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
+    "Glass Karambit", "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
     "Bayonet", "Flip Knife", "Gut Knife", "Huntsman Knife", 
     "Falchion Knife", "Bowie Knife", "Shadow Daggers", "Navaja Knife", 
     "Stiletto Knife", "Ursus Knife", "Classic Knife", "Paracord Knife", 
@@ -618,19 +618,36 @@ local skinList = {
     "Slaughter", "Freehand", "Boreal Forest", "Safari Mesh"
 }
 
+local function applySkinChanger()
+    pcall(function()
+        local char = LocalPlayer.Character
+        local tool = char and char:FindFirstChildOfClass("Tool")
+        if tool then
+            tool.Name = Config.SelectedKnife .. " | " + Config.SelectedSkin
+            if tool:FindFirstChild("Handle") then
+                for _, child in pairs(tool.Handle:GetChildren()) do
+                    if child:IsA("SpecialMesh") or child:IsA("MeshPart") then
+                        -- Glass Karambit veya özel materyal efekti uygulaması
+                        if Config.SelectedKnife == "Glass Karambit" then
+                            child.Transparency = 0.4
+                            child.Color = Color3.fromRGB(200, 230, 255)
+                        else
+                            child.Transparency = 0
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
 for _, knifeName in ipairs(knifeList) do
     CreateButton(SkinsTab, "Bıçak: " .. knifeName, function()
         Config.SelectedKnife = knifeName
-        pcall(function()
-            local char = LocalPlayer.Character
-            local tool = char and char:FindFirstChildOfClass("Tool")
-            if tool then
-                tool.Name = knifeName .. " | " .. Config.SelectedSkin
-            end
-        end)
+        applySkinChanger()
         StarterGui:SetCore("SendNotification", {
             Title = "SkinChanger",
-            Text = knifeName .. " seçildi!",
+            Text = knifeName .. " aktif edildi!",
             Duration = 2
         })
     end)
@@ -639,16 +656,10 @@ end
 for _, skinName in ipairs(skinList) do
     CreateButton(SkinsTab, "Kaplama: " .. skinName, function()
         Config.SelectedSkin = skinName
-        pcall(function()
-            local char = LocalPlayer.Character
-            local tool = char and char:FindFirstChildOfClass("Tool")
-            if tool then
-                tool.Name = Config.SelectedKnife .. " | " .. skinName
-            end
-        end)
+        applySkinChanger()
         StarterGui:SetCore("SendNotification", {
             Title = "SkinChanger",
-            Text = skinName .. " kaplaması uygulandı!",
+            Text = skinName .. " uygulandı!",
             Duration = 2
         })
     end)
@@ -960,14 +971,22 @@ RunService.RenderStepped:Connect(function()
         end
 
         if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if tick() - lastAutoAttackTick > 0.1 then
+            if tick() - lastAutoAttackTick > 0.15 then
                 lastAutoAttackTick = tick()
                 local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
                 if dist <= Config.StabDistance then
                     local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
                     if tool then
                         pcall(function()
-                            tool:Activate()
+                            VirtualUser:Button1Down(Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2))
+                            task.wait(0.02)
+                            VirtualUser:Button1Up(Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2))
+                            
+                            if tool:FindFirstChild("Handle") and closestTarget.Parent then
+                                firetouchinterest(tool.Handle, closestTarget, 0)
+                                task.wait(0.01)
+                                firetouchinterest(tool.Handle, closestTarget, 1)
+                            end
                         end)
                     end
                 end
