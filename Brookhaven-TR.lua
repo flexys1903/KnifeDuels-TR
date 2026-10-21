@@ -2,7 +2,28 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+
+-- ==================== SUNUCU TARAFI (SERVER SCRIPT MANTIĞI) ====================
+-- Not: Bu kısım sunucuda çalışır ve avatarı kusursuz kopyalayan motoru tetikler.
+local RemoteName = "UtkuCopyAvatarRE"
+local CopyRemote = ReplicatedStorage:FindFirstChild(RemoteName)
+
+if not CopyRemote and RunService:IsServer() then
+    CopyRemote = Instance.new("RemoteEvent")
+    CopyRemote.Name = RemoteName
+    CopyRemote.Parent = ReplicatedStorage
+end
+
+-- Eğer exploit ile çalıştırıyorsan ve sunucu event'i yoksa oluşturmayı dener
+pcall(function()
+    if not ReplicatedStorage:FindFirstChild(RemoteName) then
+        local r = Instance.new("RemoteEvent")
+        r.Name = RemoteName
+        r.Parent = ReplicatedStorage
+    end
+end)
 
 -- Var olan UI varsa temizle
 if game:GetService("CoreGui"):FindFirstChild("UtkuBrookhavenGUI") then
@@ -71,7 +92,7 @@ HeaderCorner.Parent = Header
 HeaderTitle.Parent = Header
 HeaderTitle.Size = UDim2.new(1, 0, 1, 0)
 HeaderTitle.BackgroundTransparency = 1
-HeaderTitle.Text = " Brookhaven RP | Utku Mega Hub"
+HeaderTitle.Text = " Brookhaven RP | 1 9 0 3"
 HeaderTitle.TextColor3 = BEIGE_ACCENT
 HeaderTitle.Font = Enum.Font.SourceSansBold
 HeaderTitle.TextSize = 15
@@ -384,7 +405,7 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ (KESİN ÇÖZÜM DEXTER/HEXAGON MOTORU) ====================
+-- ==================== 3. AVATAR SEKMESİ (SUNUCU DESTEKLİ KOPYALAMA) ====================
 CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
     
@@ -392,10 +413,31 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     local myChar = LocalPlayer.Character
     if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
     
-    -- 1. Hedef oyuncunun üstündeki giysi ve aksesuarların var olan model kopyasını doğrudan alıp yapıştırma (En Kesin Yöntem)
+    -- Brookhaven Avatar Sıfırlama
+    pcall(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
+            ReplicatedStorage.RE["1Avatar1Reset1"]:FireServer()
+        end
+    end)
+    
+    task.wait(0.2)
+    
+    -- HumanoidDescription Çek ve Uygula
+    local success, desc = pcall(function()
+        return Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
+    end)
+    
+    if success and desc then
+        local myHum = myChar:FindFirstChildOfClass("Humanoid")
+        pcall(function()
+            myHum:ApplyDescriptionReset(desc)
+        end)
+    end
+    
+    -- Fiziksel Parçaları ve Katmanları Birebir Klonla
     local targetChar = targetPlr.Character
     if targetChar then
-        -- Önce üstümüzü tamamen temizle
         for _, item in pairs(myChar:GetChildren()) do
             if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
                 item:Destroy()
@@ -404,25 +446,11 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
         
         task.wait(0.05)
         
-        -- Hedefin üzerindeki tüm parça ve aksesuarları birebir klonla
         for _, item in pairs(targetChar:GetChildren()) do
             if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
                 local clone = item:Clone()
                 clone.Parent = myChar
             end
-        end
-        
-        -- Boy ve orantı değerlerini doğrudan eşitle
-        local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
-        local myHum = myChar:FindFirstChildOfClass("Humanoid")
-        
-        if targetHum and myHum then
-            pcall(function()
-                myHum.BodyDepthScale.Value = targetHum.BodyDepthScale.Value
-                myHum.BodyHeightScale.Value = targetHum.BodyHeightScale.Value
-                myHum.BodyWidthScale.Value = targetHum.BodyWidthScale.Value
-                myHum.HeadScale.Value = targetHum.HeadScale.Value
-            end)
         end
     end
 end)
@@ -519,7 +547,7 @@ end)
 
 local Locations = {
     ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
-    ["Karakol / Polis"] = WordVector3 and Vector3.new(-140, 18, 180) or Vector3.new(-140, 18, 180),
+    ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
     ["Hastane"] = Vector3.new(-220, 18, 50),
     ["Banka"] = Vector3.new(-30, 18, -100),
     ["Okul"] = Vector3.new(-330, 18, 200),
