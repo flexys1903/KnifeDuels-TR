@@ -52,7 +52,7 @@ MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = BG_COLOR
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 380, 0, 300)
+MainFrame.Size = UDim2.new(0, 380, 0, 320)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -113,7 +113,7 @@ local function CreateTab(name)
     Container.Size = UDim2.new(1, 0, 1, 0)
     Container.BackgroundTransparency = 1
     Container.Visible = false
-    Container.CanvasSize = UDim2.new(0, 0, 3, 0)
+    Container.CanvasSize = UDim2.new(0, 0, 3.5, 0)
     Container.ScrollBarThickness = 4
 
     local UIList = Instance.new("UIListLayout")
@@ -143,11 +143,12 @@ local function CreateTab(name)
 end
 
 -- SEKMELERİ OLUŞTUR
+local TargetTab = CreateTab("Oyuncu Seç")
 local PlayerTab = CreateTab("Player")
 local TrollTab = CreateTab("Troll / Fling")
 local AvatarTab = CreateTab("Avatar")
 local VisualsTab = CreateTab("Visuals")
-local HouseTab = CreateTab("Ev / World")
+local HouseTab = CreateTab("Ev / Ban")
 local TPTab = CreateTab("Işınlanma")
 
 local function CreateButton(parent, text, callback)
@@ -167,6 +168,62 @@ local function CreateButton(parent, text, callback)
     btn.MouseButton1Click:Connect(callback)
     return btn
 end
+
+-- Global Seçilen Hedef
+local SelectedTarget = nil
+
+-- ==================== 0. OYUNCU SEÇME SEKMESİ (TÜM OYUNCULAR) ====================
+local SelectedLabel = Instance.new("TextLabel")
+SelectedLabel.Parent = TargetTab
+SelectedLabel.Size = UDim2.new(1, -5, 0, 25)
+SelectedLabel.BackgroundTransparency = 1
+SelectedLabel.Text = "Seçilen: Yok"
+SelectedLabel.TextColor3 = BEIGE_ACCENT
+SelectedLabel.Font = Enum.Font.SourceSansBold
+SelectedLabel.TextSize = 13
+
+local PlayersFrame = Instance.new("Frame")
+PlayersFrame.Parent = TargetTab
+PlayersFrame.Size = UDim2.new(1, -5, 0, 180)
+PlayersFrame.BackgroundColor3 = HEADER_COLOR
+
+local PlayersScroll = Instance.new("ScrollingFrame")
+PlayersScroll.Parent = PlayersFrame
+PlayersScroll.Size = UDim2.new(1, 0, 1, 0)
+PlayersScroll.BackgroundTransparency = 1
+PlayersScroll.CanvasSize = UDim2.new(0, 0, 4, 0)
+PlayersScroll.ScrollBarThickness = 4
+
+local PList = Instance.new("UIListLayout")
+PList.Parent = PlayersScroll
+PList.Padding = UDim.new(0, 3)
+
+local function RefreshPlayerList()
+    for _, child in pairs(PlayersScroll:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            local pBtn = Instance.new("TextButton")
+            pBtn.Parent = PlayersScroll
+            pBtn.Size = UDim2.new(1, -5, 0, 25)
+            pBtn.BackgroundColor3 = BTN_COLOR
+            pBtn.Text = plr.Name
+            pBtn.TextColor3 = TEXT_COLOR
+            pBtn.Font = Enum.Font.SourceSans
+            pBtn.TextSize = 12
+            
+            pBtn.MouseButton1Click:Connect(function()
+                SelectedTarget = plr
+                SelectedLabel.Text = "Seçilen: " .. plr.Name
+            end)
+        end
+    end
+end
+
+CreateButton(TargetTab, "Oyuncu Listesini Yenile", RefreshPlayerList)
+RefreshPlayerList()
 
 -- ==================== 1. PLAYER SEKMESİ ====================
 CreateButton(PlayerTab, "Hızlandır (Speed: 50)", function()
@@ -202,7 +259,6 @@ CreateButton(PlayerTab, "Inf Jump (Sınırsız Zıplama)", function()
     end)
 end)
 
--- Noclip (Duvarlardan Geçme)
 local NoclipActive = false
 CreateButton(PlayerTab, "Noclip Aç/Kapat (Duvar Geçiş)", function()
     NoclipActive = not NoclipActive
@@ -217,7 +273,6 @@ CreateButton(PlayerTab, "Noclip Aç/Kapat (Duvar Geçiş)", function()
     end)
 end)
 
--- Fly (Uçma)
 local Flying = false
 CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
     Flying = not Flying
@@ -256,32 +311,6 @@ CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
 end)
 
 -- ==================== 2. TROLL / FLING SEKMESİ ====================
-local SelectedTarget = nil
-
-CreateButton(TrollTab, "En Yakındaki Hedefi Seç", function()
-    local myChar = LocalPlayer.Character
-    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
-    
-    local closestPlr = nil
-    local shortestDist = math.huge
-    
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local dist = (myChar.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
-            if dist < shortestDist then
-                shortestDist = dist
-                closestPlr = plr
-            end
-        end
-    end
-    
-    if closestPlr then
-        SelectedTarget = closestPlr
-        print("Hedef Seçildi: " .. SelectedTarget.Name)
-    end
-end)
-
--- Fling (Oyuncuyu Havaya/Uzağa Fırlatma)
 local Flinging = false
 CreateButton(TrollTab, "Seçilen Kişiyi Flingle (Fırlat)", function()
     if not SelectedTarget or not SelectedTarget.Character then return end
@@ -310,7 +339,6 @@ CreateButton(TrollTab, "Seçilen Kişiyi Flingle (Fırlat)", function()
     end)
 end)
 
--- Spin Bot (Hızlıca Dönme)
 local Spinning = false
 CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     Spinning = not Spinning
@@ -331,7 +359,7 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
 end)
 
 -- ==================== 3. AVATAR SEKMESİ ====================
-CreateButton(AvatarTab, "Seçilinin Avatarını Kopyala", function()
+CreateButton(AvatarTab, "Seçilenin Avatarını Kopyala", function()
     if not SelectedTarget or not SelectedTarget.Character then return end
     local myChar = LocalPlayer.Character
     local targetChar = SelectedTarget.Character
@@ -436,6 +464,14 @@ CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
 end)
 
 -- ==================== 6. IŞINLANMA (TELEPORT) SEKMESİ ====================
+CreateButton(TPTab, "Seçilen Oyuncuya Işınlan", function()
+    if SelectedTarget and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = SelectedTarget.Character.HumanoidRootPart.CFrame
+        end
+    end
+end)
+
 local Locations = {
     ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
     ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
@@ -452,14 +488,6 @@ for name, pos in pairs(Locations) do
         end
     end)
 end
-
-CreateButton(TPTab, "Seçilen Oyuncuya Işınlan", function()
-    if SelectedTarget and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") then
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = SelectedTarget.Character.HumanoidRootPart.CFrame
-        end
-    end
-end)
 
 -- PC için F tuşu ile gizleme
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
