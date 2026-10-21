@@ -105,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Gelişmiş SkinChanger) Yüklendi!",
+        Text = "FlexysHub (Tam Düzeltilmiş Sürüm) Yüklendi!",
         Duration = 3
     })
 end)
@@ -136,38 +136,42 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- REAL SKINCHANGER ENGINE FOR KNIFE DUELS
+-- FIXED SKINCHANGER ENGINE (ONLY FOR WEAPONS, NOT BODY)
 ---------------------------------------------------------
-local function ApplySkinToModel(obj)
-    if not obj then return end
+local function ApplySkinToKnife(tool)
+    if not tool or not tool:IsA("Tool") then return end
 
-    -- Modelin veya parçanın rengini ve dokusunu değiştir
-    if obj:IsA("MeshPart") or obj:IsA("BasePart") then
-        if Config.SelectedKnife == "Glass Karambit" then
-            obj.Material = Enum.Material.Glass
-            obj.Transparency = 0.35
-            obj.Color = Color3.fromRGB(160, 210, 255)
-        else
-            obj.Transparency = 0
-            obj.Material = Enum.Material.SmoothPlastic
-            
-            -- Kaplama Renk Seçenekleri Enjeksiyonu
-            if Config.SelectedSkin == "Ruby" then
-                obj.Color = Color3.fromRGB(255, 30, 70)
-            elseif Config.SelectedSkin == "Sapphire" then
-                obj.Color = Color3.fromRGB(30, 100, 255)
-            elseif Config.SelectedSkin == "Emerald" then
-                obj.Color = Color3.fromRGB(30, 255, 120)
-            elseif Config.SelectedSkin == "Black Pearl" then
-                obj.Color = Color3.fromRGB(35, 35, 45)
-            elseif Config.SelectedSkin == "Gold" then
-                obj.Color = Color3.fromRGB(255, 215, 0)
+    for _, child in pairs(tool:GetDescendants()) do
+        if child:IsA("MeshPart") or child:IsA("BasePart") or child:IsA("SpecialMesh") then
+            -- Karakter vücut parçalarını atla
+            local name = string.lower(child.Name)
+            if name ~= "left arm" and name ~= "right arm" and name ~= "left hand" and name ~= "right hand" and name ~= "torso" and name ~= "head" then
+                if Config.SelectedKnife == "Glass Karambit" then
+                    if child:IsA("BasePart") or child:IsA("MeshPart") then
+                        child.Material = Enum.Material.Glass
+                        child.Transparency = 0.35
+                        child.Color = Color3.fromRGB(160, 210, 255)
+                    end
+                else
+                    if child:IsA("BasePart") or child:IsA("MeshPart") then
+                        child.Transparency = 0
+                        child.Material = Enum.Material.SmoothPlastic
+                        
+                        if Config.SelectedSkin == "Ruby" then
+                            child.Color = Color3.fromRGB(255, 30, 70)
+                        elseif Config.SelectedSkin == "Sapphire" then
+                            child.Color = Color3.fromRGB(30, 100, 255)
+                        elseif Config.SelectedSkin == "Emerald" then
+                            child.Color = Color3.fromRGB(30, 255, 120)
+                        elseif Config.SelectedSkin == "Black Pearl" then
+                            child.Color = Color3.fromRGB(35, 35, 45)
+                        elseif Config.SelectedSkin == "Gold" then
+                            child.Color = Color3.fromRGB(255, 215, 0)
+                        end
+                    end
+                end
             end
         end
-    end
-
-    for _, child in pairs(obj:GetChildren()) do
-        ApplySkinToModel(child)
     end
 end
 
@@ -176,45 +180,32 @@ local function ProcessKnifeSkinChanger()
         local char = LocalPlayer.Character
         if not char then return end
 
-        -- Elde tutulan Tool veya Karakter Modelindeki Bıçakları Tara
         for _, item in pairs(char:GetChildren()) do
-            if item:IsA("Tool") or string.find(string.lower(item.Name), "knife") or string.find(string.lower(item.Name), "sword") then
-                ApplySkinToModel(item)
-            end
-        end
-
-        -- Kamera / FPS Görünümündeki Bıçakları Tara
-        local cam = Workspace.CurrentCamera
-        if cam then
-            for _, item in pairs(cam:GetChildren()) do
-                if item:IsA("Model") or item:IsA("Tool") then
-                    ApplySkinToModel(item)
-                end
+            if item:IsA("Tool") then
+                ApplySkinToKnife(item)
             end
         end
     end)
 end
 
--- Bıçağı eline aldığında veya sürekli olarak derinden uygula
-RunService.Stepped:Connect(function()
-    if Config.SelectedKnife and Config.SelectedSkin then
-        ProcessKnifeSkinChanger()
-    end
+RunService.RenderStepped:Connect(function()
+    ProcessKnifeSkinChanger()
 end)
 
 ---------------------------------------------------------
--- OPTIMIZED TEAM CHECK
+-- CLEAN STABLE TEAM CHECK
 ---------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    if LocalPlayer.Team ~= nil and player.Team ~= nil then
-        return LocalPlayer.Team == player.Team
+    -- Takım kontrolü sadece gerçek takımlar farklıysa çalışır
+    if LocalPlayer.Team ~= nil and player.Team ~= nil and LocalPlayer.Team == player.Team then
+        return true
     end
     
-    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
-        return LocalPlayer.TeamColor == player.TeamColor
+    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil and LocalPlayer.TeamColor == player.TeamColor then
+        return true
     end
 
     return false
