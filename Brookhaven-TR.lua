@@ -1,118 +1,277 @@
--- Kavo UI Kütüphanesini Yükle
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+-- Roblox Hizmetleri
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
 
--- Gri ve Bej Renk Paleti Tanımlamaları
-local CustomTheme = {
-    SchemeColor = Color3.fromRGB(195, 180, 155), -- Bej (Ana Vurgu Rengi)
-    Background = Color3.fromRGB(45, 45, 45),     -- Koyu Gri (Arka Plan)
-    Header = Color3.fromRGB(35, 35, 35),         -- Başlık Grisi
-    TextColor = Color3.fromRGB(240, 235, 225),   -- Krem / Bej Yazı
-    ElementColor = Color3.fromRGB(55, 55, 55)    -- Element Grisi
-}
+-- Var olan UI varsa temizle
+if game:GetService("CoreGui"):FindFirstChild("1903gui") then
+    game:GetService("CoreGui").UtkuBrookhavenGUI:Destroy()
+end
 
--- Yüzen (Draggable) Pencere Oluştur
-local Window = Library.CreateLib("Brookhaven | ig:utku.ss", CustomTheme)
-
--- ====================================================================
--- MOBİL İÇİN YÜZEN AÇ/KAPAT BUTONU (FLOATING TOGGLE BUTTON FOR MOBILE)
--- ====================================================================
+-- ScreenGui Oluşturma
 local ScreenGui = Instance.new("ScreenGui")
-local ToggleBtn = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
-
-ScreenGui.Name = "UtkuMobileGui"
-ScreenGui.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "UtkuBrookhavenGUI"
+ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- Renk Paleti (Gri & Bej)
+local BG_COLOR = Color3.fromRGB(40, 40, 40)       -- Koyu Gri
+local HEADER_COLOR = Color3.fromRGB(30, 30, 30)   -- Başlık Grisi
+local BEIGE_ACCENT = Color3.fromRGB(200, 185, 155) -- Bej Vurgu Rengi
+local BTN_COLOR = Color3.fromRGB(55, 55, 55)      -- Buton Grisi
+local TEXT_COLOR = Color3.fromRGB(245, 240, 230)  -- Krem / Bej Yazı
+
+-- 1. YÜZEN AÇ/KAPAT BUTONU (MOBİL & PC)
+local ToggleBtn = Instance.new("TextButton")
+local ToggleCorner = Instance.new("UICorner")
 ToggleBtn.Name = "ToggleBtn"
 ToggleBtn.Parent = ScreenGui
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+ToggleBtn.BackgroundColor3 = BG_COLOR
 ToggleBtn.BorderSizePixel = 0
-ToggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0) -- Ekranın sol üst alanında durur
-ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0)
+ToggleBtn.Size = UDim2.new(0, 55, 0, 55)
 ToggleBtn.Font = Enum.Font.SourceSansBold
 ToggleBtn.Text = "MENU"
-ToggleBtn.TextColor3 = Color3.fromRGB(195, 180, 155)
-ToggleBtn.TextSize = 14.000
+ToggleBtn.TextColor3 = BEIGE_ACCENT
+ToggleBtn.TextSize = 16
 ToggleBtn.Active = true
-ToggleBtn.Draggable = true -- Mobilde ekranda parmağınla istediğin yere taşıyabilirsin
+ToggleBtn.Draggable = true
 
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = ToggleBtn
+ToggleCorner.CornerRadius = UDim.new(0, 14)
+ToggleCorner.Parent = ToggleBtn
 
--- Dokunulduğunda / Tıklandığında Menüyü Aç / Kapat
+-- 2. ANA PENCERE (MAIN FRAME)
+local MainFrame = Instance.new("Frame")
+local MainCorner = Instance.new("UICorner")
+local Header = Instance.new("Frame")
+local HeaderTitle = Instance.new("TextLabel")
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = BG_COLOR
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
+MainFrame.Size = UDim2.new(0, 360, 0, 270)
+MainFrame.Active = true
+MainFrame.Draggable = true -- Mobil ve PC'de üstten/her yerden tutulup sürüklenebilir!
+
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+Header.Name = "Header"
+Header.Parent = MainFrame
+Header.BackgroundColor3 = HEADER_COLOR
+Header.Size = UDim2.new(1, 0, 0, 40)
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 10)
+HeaderCorner.Parent = Header
+
+HeaderTitle.Parent = Header
+HeaderTitle.Size = UDim2.new(1, 0, 1, 0)
+HeaderTitle.BackgroundTransparency = 1
+HeaderTitle.Text = " Brookhaven RP | Utku Özel Versiyon"
+HeaderTitle.TextColor3 = BEIGE_ACCENT
+HeaderTitle.Font = Enum.Font.SourceSansBold
+HeaderTitle.TextSize = 16
+HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Menü Açma/Kapatma Mantığı
 ToggleBtn.MouseButton1Click:Connect(function()
-    Library:ToggleUI()
+    MainFrame.Visible = not MainFrame.Visible
 end)
 
--- ====================================================================
--- SEKMELER VE ÖZELLİKLER
--- ====================================================================
+-- 3. SEKMELER (TABS) SİSTEMİ
+local TabBar = Instance.new("Frame")
+TabBar.Parent = MainFrame
+TabBar.BackgroundColor3 = HEADER_COLOR
+TabBar.Position = UDim2.new(0, 0, 0, 40)
+TabBar.Size = UDim2.new(0, 100, 1, -40)
 
--- 1. ANA SAYFA (HOME) SEKMESİ
-local Home = Window:NewTab("Home")
-local HomeSection = Home:NewSection("Genel Bilgi")
+local ContentArea = Instance.new("Frame")
+ContentArea.Parent = MainFrame
+ContentArea.BackgroundTransparency = 1
+ContentArea.Position = UDim2.new(0, 105, 0, 45)
+ContentArea.Size = UDim2.new(1, -110, 1, -50)
 
-HomeSection:NewLabel("Hoş geldin, Utku!")
-HomeSection:NewLabel("Bu script PC & Mobil uyumludur.")
-HomeSection:NewLabel("Oyun: Brookhaven RP")
+local Tabs = {}
+local CurrentTab = nil
 
--- 2. OYUNCU (PLAYER) SEKMESİ
-local PlayerTab = Window:NewTab("Player")
-local PlayerSection = PlayerTab:NewSection("Karakter Ayarları")
+local function CreateTab(name)
+    local TabBtn = Instance.new("TextButton")
+    TabBtn.Parent = TabBar
+    TabBtn.Size = UDim2.new(1, 0, 0, 35)
+    TabBtn.Position = UDim2.new(0, 0, 0, #Tabs * 35)
+    TabBtn.BackgroundColor3 = BTN_COLOR
+    TabBtn.BorderSizePixel = 0
+    TabBtn.Text = name
+    TabBtn.TextColor3 = TEXT_COLOR
+    TabBtn.Font = Enum.Font.SourceSansBold
+    TabBtn.TextSize = 13
 
-PlayerSection:NewSlider("Walkspeed", "Karakter hızını değiştirir", 250, 16, function(s)
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChildOfClass("Humanoid") then
-        char:FindFirstChildOfClass("Humanoid").WalkSpeed = s
+    local Container = Instance.new("ScrollingFrame")
+    Container.Parent = ContentArea
+    Container.Size = UDim2.new(1, 0, 1, 0)
+    Container.BackgroundTransparency = 1
+    Container.Visible = false
+    Container.CanvasSize = UDim2.new(0, 0, 2, 0)
+    Container.ScrollBarThickness = 4
+
+    local UIList = Instance.new("UIListLayout")
+    UIList.Parent = Container
+    UIList.Padding = UDim.new(0, 5)
+
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, t in pairs(Tabs) do
+            t.Container.Visible = false
+            t.Button.BackgroundColor3 = BTN_COLOR
+            t.Button.TextColor3 = TEXT_COLOR
+        end
+        Container.Visible = true
+        TabBtn.BackgroundColor3 = BEIGE_ACCENT
+        TabBtn.TextColor3 = BG_COLOR
+    end)
+
+    table.insert(Tabs, {Button = TabBtn, Container = Container})
+    
+    if #Tabs == 1 then
+        Container.Visible = true
+        TabBtn.BackgroundColor3 = BEIGE_ACCENT
+        TabBtn.TextColor3 = BG_COLOR
+    end
+
+    return Container
+end
+
+-- ==================== SEKMELER ====================
+local PlayerTab = CreateTab("Player")
+local AvatarTab = CreateTab("Avatar")
+local VisualsTab = CreateTab("Visuals")
+local HouseTab = CreateTab("Ev / Ban")
+
+-- Yardımcı Eleman Oluşturucular
+local function CreateButton(parent, text, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = parent
+    btn.Size = UDim2.new(1, -5, 0, 32)
+    btn.BackgroundColor3 = BTN_COLOR
+    btn.Text = text
+    btn.TextColor3 = BEIGE_ACCENT
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 13
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
+
+-- ==================== 1. PLAYER SEKMESİ ====================
+CreateButton(PlayerTab, "Hızlandır (Speed: 50)", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 50
     end
 end)
 
-PlayerSection:NewSlider("Jumppower", "Zıplama yüksekliğini değiştirir", 250, 50, function(j)
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChildOfClass("Humanoid") then
-        char:FindFirstChildOfClass("Humanoid").JumpPower = j
-        char:FindFirstChildOfClass("Humanoid").UseJumpPower = true
+CreateButton(PlayerTab, "Normal Hız (Speed: 16)", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
     end
 end)
 
-PlayerSection:NewButton("Inf Jumps", "Havada sınırsız zıplamanı sağlar", function()
-    local InfiniteJumpEnabled = true
-    game:GetService("UserInputService").JumpRequest:Connect(function()
-        if InfiniteJumpEnabled then
-            local humanoid = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid:ChangeState("Jumping")
-            end
+CreateButton(PlayerTab, "Yüksek Zıplama", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = 100
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
+    end
+end)
+
+CreateButton(PlayerTab, "Inf Jump (Sınırsız Zıplama)", function()
+    UserInputService.JumpRequest:Connect(function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+            LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
         end
     end)
 end)
 
--- 3. GÖRSEL / ESP (VISUALS) SEKMESİ
-local VisualsTab = Window:NewTab("Visuals")
-local VisualsSection = VisualsTab:NewSection("ESP & Göstergeler")
+-- ==================== 2. AVATAR SEKMESİ (GARANTİLİ KOPYALAMA) ====================
+local SelectedPlayer = nil
 
+local function GetPlayerNames()
+    local names = {}
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            table.insert(names, v.Name)
+        end
+    end
+    return names
+end
+
+CreateButton(AvatarTab, "En Yakındaki Oyuncuyu Seç", function()
+    local myChar = LocalPlayer.Character
+    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+    
+    local closestPlr = nil
+    local shortestDist = math.huge
+    
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (myChar.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+            if dist < shortestDist then
+                shortestDist = dist
+                closestPlr = plr
+            end
+        end
+    end
+    
+    if closestPlr then
+        SelectedPlayer = closestPlr
+        print("Seçilen Oyuncu: " .. SelectedPlayer.Name)
+    end
+end)
+
+CreateButton(AvatarTab, "Seçilinin Avatarını Kopyala", function()
+    if not SelectedPlayer or not SelectedPlayer.Character then return end
+    local myChar = LocalPlayer.Character
+    local targetChar = SelectedPlayer.Character
+    
+    if myChar and targetChar then
+        -- Eski kıyafetleri ve aksesuarları temizle
+        for _, item in pairs(myChar:GetChildren()) do
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+                item:Destroy()
+            end
+        end
+        
+        -- Hedef oyuncunun kıyafet ve aksesuarlarını klonlayıp giy
+        for _, item in pairs(targetChar:GetChildren()) do
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+                local clone = item:Clone()
+                clone.Parent = myChar
+            end
+        end
+    end
+end)
+
+-- ==================== 3. VISUALS (ESP) SEKMESİ ====================
 local ESPEnabled = false
 local ESPObjects = {}
 
-local function ClearESP()
-    for _, esp in pairs(ESPObjects) do
-        if esp then esp:Destroy() end
-    end
-    ESPObjects = {}
-end
-
-VisualsSection:NewToggle("Oyuncu ESP (İsim & Mesafe)", "Duvar arkasından oyuncuları ve mesafeyi gösterir", function(state)
-    ESPEnabled = state
+CreateButton(VisualsTab, "Oyuncu ESP Aç/Kapat", function()
+    ESPEnabled = not ESPEnabled
+    
     if not ESPEnabled then
-        ClearESP()
+        for _, v in pairs(ESPObjects) do v:Destroy() end
+        ESPObjects = {}
     else
         task.spawn(function()
             while ESPEnabled do
-                for _, plr in pairs(game.Players:GetPlayers()) do
-                    if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
                         local head = plr.Character.Head
-                        local myChar = game.Players.LocalPlayer.Character
+                        local myChar = LocalPlayer.Character
                         
                         if myChar and myChar:FindFirstChild("HumanoidRootPart") then
                             local dist = math.floor((myChar.HumanoidRootPart.Position - head.Position).Magnitude)
@@ -122,8 +281,8 @@ VisualsSection:NewToggle("Oyuncu ESP (İsim & Mesafe)", "Duvar arkasından oyunc
                                 billboard = Instance.new("BillboardGui")
                                 billboard.Name = "UtkuESP"
                                 billboard.AlwaysOnTop = true
-                                billboard.Size = UDim2.new(0, 150, 0, 40)
-                                billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+                                billboard.Size = UDim2.new(0, 120, 0, 30)
+                                billboard.StudsOffset = Vector3.new(0, 2, 0)
                                 billboard.Parent = head
                                 table.insert(ESPObjects, billboard)
 
@@ -131,10 +290,8 @@ VisualsSection:NewToggle("Oyuncu ESP (İsim & Mesafe)", "Duvar arkasından oyunc
                                 textLabel.Name = "ESPLabel"
                                 textLabel.Size = UDim2.new(1, 0, 1, 0)
                                 textLabel.BackgroundTransparency = 1
-                                textLabel.TextColor3 = Color3.fromRGB(195, 180, 155) -- Bej Renk
-                                textLabel.TextStrokeTransparency = 0
-                                textLabel.TextScaled = false
-                                textLabel.TextSize = 14
+                                textLabel.TextColor3 = BEIGE_ACCENT
+                                textLabel.TextSize = 13
                                 textLabel.Font = Enum.Font.SourceSansBold
                                 textLabel.Parent = billboard
                             end
@@ -147,79 +304,20 @@ VisualsSection:NewToggle("Oyuncu ESP (İsim & Mesafe)", "Duvar arkasından oyunc
                 end
                 task.wait(0.5)
             end
-            ClearESP()
         end)
     end
 end)
 
--- 4. AVATAR SEKMESİ
-local AvatarTab = Window:NewTab("Avatar")
-local AvatarSection = AvatarTab:NewSection("Avatar Kopyalama")
-
-local PlayerList = {}
-for _, v in pairs(game:GetService("Players"):GetChildren()) do
-    if v ~= game.Players.LocalPlayer then
-        table.insert(PlayerList, v.Name)
-    end
-end
-
-local SelectedAvatarPlayer = ""
-AvatarSection:NewDropdown("Oyuncu Seç", "Kıyafetini almak istediğin kişiyi seç", PlayerList, function(t)
-    SelectedAvatarPlayer = t
-end)
-
-AvatarSection:NewButton("Avatarı Kopyala", "Seçtiğin oyuncunun kıyafet ve görünümünü alır", function()
-    local targetPlr = game.Players:FindFirstChild(SelectedAvatarPlayer)
-    local myChar = game.Players.LocalPlayer.Character
-    
-    if targetPlr and targetPlr.Character then
-        local targetHumanoid = targetPlr.Character:FindFirstChildOfClass("Humanoid")
-        local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
-        
-        if targetHumanoid and myHumanoid then
-            local success, desc = pcall(function()
-                return game.Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
-            end)
-            
-            if success and desc then
-                myHumanoid:ApplyDescription(desc)
-            else
-                for _, item in pairs(targetPlr.Character:GetChildren()) do
-                    if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
-                        local clonedItem = item:Clone()
-                        clonedItem.Parent = myChar
-                    end
-                end
-            end
-        end
-    end
-end)
-
-AvatarSection:NewButton("Kendi Avatarına Dön", "Kendi orijinal avatarını yükler", function()
-    local myChar = game.Players.LocalPlayer.Character
-    local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
-    if myHumanoid then
-        local desc = game.Players:GetHumanoidDescriptionFromUserId(game.Players.LocalPlayer.UserId)
-        if desc then
-            myHumanoid:ApplyDescription(desc)
-        end
-    end
-end)
-
--- 5. BROOKHAVEN ÖZEL (EV & BAN) SEKMESİ
-local HouseTab = Window:NewTab("Ev / World")
-local HouseSection = HouseTab:NewSection("Ev Kısıtlamaları")
-
-HouseSection:NewButton("Ev Banlarını Kaldır (Unban All)", "Seni banlayan evlerin kapı/ban engellerini söker", function()
+-- ==================== 4. EV BAN KALDIRMA SEKMESİ ====================
+CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj.Name == "BanBlock" or obj.Name == "BanBariyer" or obj.Name == "HouseBan" or (obj:IsA("BasePart") and string.find(string.lower(obj.Name), "ban")) then
             obj:Destroy()
         end
     end
     
-    local plr = game.Players.LocalPlayer
-    if plr and plr.Character then
-        for _, v in pairs(plr.Character:GetDescendants()) do
+    if LocalPlayer.Character then
+        for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
             if v.Name == "Ban" or v.Name == "HouseBan" then
                 v:Destroy()
             end
@@ -227,31 +325,9 @@ HouseSection:NewButton("Ev Banlarını Kaldır (Unban All)", "Seni banlayan evle
     end
 end)
 
--- 6. IŞINLANMA (TELEPORT) SEKMESİ
-local TP = Window:NewTab("Teleports")
-local TPSection = TP:NewSection("Oyuncu Işınlanma")
-
-local SelectedPlayer = ""
-TPSection:NewDropdown("Oyuncu Seç", "Işınlanılacak kişiyi seç", PlayerList, function(t)
-    SelectedPlayer = t
-end)
-
-TPSection:NewButton("Seçilen Kişiye Işınlan", "Oyuncunun yanına gider", function()
-    local target = game.Players:FindFirstChild(SelectedPlayer)
-    local localChar = game.Players.LocalPlayer.Character
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and localChar and localChar:FindFirstChild("HumanoidRootPart") then
-        localChar.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+-- PC için F tuşu ile gizleme
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.F then
+        MainFrame.Visible = not MainFrame.Visible
     end
-end)
-
--- 7. AYARLAR & MENÜ KÜÇÜLTME (SETTINGS) SEKMESİ
-local SettingsTab = Window:NewTab("Settings")
-local SettingsSection = SettingsTab:NewSection("Arayüz Ayarları")
-
-SettingsSection:NewButton("Menüyü Gizle / Küçült", "Arayüzü ekrandan saklar", function()
-    Library:ToggleUI()
-end)
-
-SettingsSection:NewKeybind("UI Kapat/Aç Tuşu (PC)", "Klavyeden menüyü gizler veya açar", Enum.KeyCode.F, function()
-    Library:ToggleUI()
 end)
