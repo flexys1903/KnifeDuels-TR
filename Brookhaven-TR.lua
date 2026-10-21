@@ -1,6 +1,17 @@
 -- Kavo UI Kütüphanesini Yükle
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Brookhaven | Utku Özel Versiyon", "Sentinel")
+
+-- Gri ve Bej Renk Paleti Tanımlamaları
+local CustomTheme = {
+    SchemeColor = Color3.fromRGB(195, 180, 155), -- Bej (Ana Vurgu Rengi)
+    Background = Color3.fromRGB(45, 45, 45),     -- Koyu Gri (Arka Plan)
+    Header = Color3.fromRGB(35, 35, 35),         -- Başlık Grisi
+    TextColor = Color3.fromRGB(240, 235, 225),   -- Krem / Bej Yazı
+    ElementColor = Color3.fromRGB(55, 55, 55)    -- Element Grisi
+}
+
+-- Yüzen (Draggable) Pencere Oluştur
+local Window = Library.CreateLib("Brookhaven | Utku Özel Versiyon", CustomTheme)
 
 -- 1. ANA SAYFA (HOME) SEKMESİ
 local Home = Window:NewTab("Home")
@@ -84,7 +95,7 @@ VisualsSection:NewToggle("Oyuncu ESP (İsim & Mesafe)", "Duvar arkasından oyunc
                                 textLabel.Name = "ESPLabel"
                                 textLabel.Size = UDim2.new(1, 0, 1, 0)
                                 textLabel.BackgroundTransparency = 1
-                                textLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                                textLabel.TextColor3 = Color3.fromRGB(195, 180, 155) -- Bej Renk
                                 textLabel.TextStrokeTransparency = 0
                                 textLabel.TextScaled = false
                                 textLabel.TextSize = 14
@@ -164,16 +175,12 @@ local HouseTab = Window:NewTab("Ev / World")
 local HouseSection = HouseTab:NewSection("Ev Kısıtlamaları")
 
 HouseSection:NewButton("Ev Banlarını Kaldır (Unban All)", "Seni banlayan evlerin kapı/ban engellerini söker", function()
-    local count = 0
-    -- Brookhaven ev sistemindeki ban/bariyer nesnelerini temizler
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj.Name == "BanBlock" or obj.Name == "BanBariyer" or obj.Name == "HouseBan" or (obj:IsA("BasePart") and string.find(string.lower(obj.Name), "ban")) then
             obj:Destroy()
-            count = count + 1
         end
     end
     
-    -- Karakterdeki ban durumunu resetleme
     local plr = game.Players.LocalPlayer
     if plr and plr.Character then
         for _, v in pairs(plr.Character:GetDescendants()) do
@@ -201,10 +208,14 @@ TPSection:NewButton("Seçilen Kişiye Işınlan", "Oyuncunun yanına gider", fun
     end
 end)
 
--- 7. AYARLAR (SETTINGS) SEKMESİ
+-- 7. AYARLAR & MENÜ KÜÇÜLTME (SETTINGS) SEKMESİ
 local SettingsTab = Window:NewTab("Settings")
 local SettingsSection = SettingsTab:NewSection("Arayüz Ayarları")
 
-SettingsSection:NewKeybind("UI Kapat/Aç", "Menüyü gizleyip açar", Enum.KeyCode.F, function()
+SettingsSection:NewButton("Menüyü Gizle / Küçült", "Arayüzü ekrandan saklar", function()
+    Library:ToggleUI()
+end)
+
+SettingsSection:NewKeybind("UI Kapat/Aç Tuşu", "Klavyeden menüyü gizler veya açar", Enum.KeyCode.F, function()
     Library:ToggleUI()
 end)
