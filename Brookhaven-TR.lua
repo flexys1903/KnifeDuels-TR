@@ -310,48 +310,64 @@ CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
     end
 end)
 
--- ==================== 2. TROLL / FLING SEKMESİ (KOLTUKLU & AÇ/KAPAT) ====================
+-- ==================== 2. TROLL / FLING SEKMESİ (AKILLI KOLTUK + ESKİ KONUMA DÖNÜŞ) ====================
 local FlingActive = false
+local OriginalPosition = nil
 
-CreateButton(TrollTab, "Fling (Fırlatma) Aç/Kapat", function()
+CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
     if not SelectedTarget or not SelectedTarget.Character then return end
     
-    FlingActive = not FlingActive
     local myChar = LocalPlayer.Character
-    local targetChar = SelectedTarget.Character
+    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+    
+    FlingActive = not FlingActive
     
     if FlingActive then
-        local backpack = LocalPlayer:FindFirstChild("Backpack")
-        if backpack then
-            for _, item in pairs(backpack:GetChildren()) do
-                if item:IsA("Tool") and (string.find(string.lower(item.Name), "couch") or string.find(string.lower(item.Name), "chair") or string.find(string.lower(item.Name), "koltuk")) then
-                    item.Parent = myChar
-                    break
+        -- 1. Orijinal konumumuzu kaydet
+        OriginalPosition = myChar.HumanoidRootPart.CFrame
+        
+        -- 2. Elinde koltuk yoksa çantadan otomatik kuşan (Couch / Chair / Koltuk)
+        local equippedTool = myChar:FindFirstChildOfClass("Tool")
+        if not equippedTool or not (string.find(string.lower(equippedTool.Name), "couch") or string.find(string.lower(equippedTool.Name), "chair") or string.find(string.lower(equippedTool.Name), "koltuk")) then
+            local backpack = LocalPlayer:FindFirstChild("Backpack")
+            if backpack then
+                for _, item in pairs(backpack:GetChildren()) do
+                    if item:IsA("Tool") and (string.find(string.lower(item.Name), "couch") or string.find(string.lower(item.Name), "chair") or string.find(string.lower(item.Name), "koltuk")) then
+                        item.Parent = myChar
+                        break
+                    end
                 end
             end
         end
         
+        -- 3. Fling Fiziğini ve Hedef Takibini Başlat
         task.spawn(function()
-            if myChar and targetChar and myChar:FindFirstChild("HumanoidRootPart") and targetChar:FindFirstChild("HumanoidRootPart") then
-                local bvo = Instance.new("BodyAngularVelocity")
-                bvo.Name = "FlingVelocity"
-                bvo.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-                bvo.AngularVelocity = Vector3.new(0, 999999, 0)
-                bvo.Parent = myChar.HumanoidRootPart
-                
-                while FlingActive and myChar and targetChar and targetChar:FindFirstChild("HumanoidRootPart") do
-                    myChar.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 0, 0)
-                    RunService.Heartbeat:Wait()
-                end
-                
-                if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
-                    myChar.HumanoidRootPart.FlingVelocity:Destroy()
-                end
+            local bvo = Instance.new("BodyAngularVelocity")
+            bvo.Name = "FlingVelocity"
+            bvo.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bvo.AngularVelocity = Vector3.new(0, 999999, 0)
+            bvo.Parent = myChar.HumanoidRootPart
+            
+            while FlingActive and myChar and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") do
+                local targetHRP = SelectedTarget.Character.HumanoidRootPart
+                -- Kişinin üstüne / boşluğa yapışıp fırlatma simülasyonu
+                myChar.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
+                RunService.Heartbeat:Wait()
+            end
+            
+            if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
+                myChar.HumanoidRootPart.FlingVelocity:Destroy()
             end
         end)
     else
-        if myChar and myChar:FindFirstChild("HumanoidRootPart") and myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
+        -- İkinci kez basıldı: Fling'i durdur ve eski konumuna ışınlan!
+        if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
             myChar.HumanoidRootPart.FlingVelocity:Destroy()
+        end
+        
+        if OriginalPosition then
+            task.wait(0.05)
+            myChar.HumanoidRootPart.CFrame = OriginalPosition
         end
     end
 end)
@@ -375,7 +391,7 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ (HEXAGON TARZI GELİŞMİŞ KOPYALAMA) ====================
+-- ==================== 3. AVATAR SEKMESİ ====================
 CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
     
@@ -383,7 +399,6 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     local myChar = LocalPlayer.Character
     if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
     
-    -- Brookhaven Avatar Sıfırlama Server Tetikleyicisi
     pcall(function()
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
@@ -393,37 +408,25 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     
     task.wait(0.2)
     
-    -- Üstündeki tüm eski kıyafet ve katmanları temizle
     for _, item in pairs(myChar:GetChildren()) do
-        if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
+        if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
             item:Destroy()
         end
     end
     
     task.wait(0.1)
     
-    -- Hexagon ve üst düzey hub'ların kullandığı gelişmiş HumanoidDescription veri çekme yöntemi
     local success, desc = pcall(function()
         return Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
     end)
     
-    local myHum = myChar:FindFirstChildOfClass("Humanoid")
-    
-    if success and desc and myHum then
-        -- Vücut oranları ve boyutları tam senkronizasyon
-        pcall(function()
-            myHum.BodyDepthScale.Value = desc.BodyDepthScale
-            myHum.BodyHeightScale.Value = desc.BodyHeightScale
-            myHum.BodyWidthScale.Value = desc.BodyWidthScale
-            myHum.HeadScale.Value = desc.HeadScale
-        end)
-        
+    if success and desc then
+        local myHum = myChar:FindFirstChildOfClass("Humanoid")
         pcall(function()
             myHum:ApplyDescriptionReset(desc)
         end)
     end
     
-    -- Hedef karakterin üzerindeki tüm aktif varlıkları (Mesh, aksesuar, katmanlı giysi) doğrudan klonlayıp entegre etme
     if targetPlr.Character then
         for _, item in pairs(targetPlr.Character:GetChildren()) do
             if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
