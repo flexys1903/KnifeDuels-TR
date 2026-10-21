@@ -3,18 +3,23 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local HttpService = game:GetService("HttpService")
 
 -- Var olan UI varsa temizle
+if PlayerGui:FindFirstChild("UtkuBrookhavenGUI") then
+    PlayerGui.UtkuBrookhavenGUI:Destroy()
+end
 if game:GetService("CoreGui"):FindFirstChild("UtkuBrookhavenGUI") then
     game:GetService("CoreGui").UtkuBrookhavenGUI:Destroy()
 end
 
--- ScreenGui Oluşturma
+-- ScreenGui Oluşturma (Garantili Yerleşim)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "UtkuBrookhavenGUI"
-ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = PlayerGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
 
 -- Renk Paleti (Gri & Bej - Utku Özel Tasarım)
 local BG_COLOR = Color3.fromRGB(40, 40, 40)       -- Koyu Gri
@@ -215,7 +220,6 @@ local function RefreshPlayerList()
             
             pBtn.MouseButton1Click:Connect(function()
                 SelectedTarget = plr
-                SelectedLabel.Text = "Seçilen: " + plr.Name -- Fix below
                 SelectedLabel.Text = "Seçilen: " .. plr.Name
             end)
         end
@@ -262,7 +266,7 @@ local Locations = {
 }
 
 for name, pos in pairs(Locations) do
-    CreateButton(TPTab, name + "'a Işınlan", function() -- syntax fix
+    CreateButton(TPTab, name .. " Işınlan", function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
         end
@@ -296,37 +300,21 @@ AboutLabel.TextColor3 = BEIGE_ACCENT
 AboutLabel.Font = Enum.Font.SourceSansBold
 AboutLabel.TextSize = 15
 
--- Boydan Avatar Görüntüsü (Thumbnail API)
 local AvatarImage = Instance.new("ImageLabel")
 AvatarImage.Parent = AboutTab
 AvatarImage.Size = UDim2.new(0, 140, 0, 140)
 AvatarImage.Position = UDim2.new(0.5, -70, 0, 35)
 AvatarImage.BackgroundTransparency = 1
 
--- AMATOR_TURK kullanıcısının ID'sini çekip boydan (FullBody) resmini koyma
 task.spawn(function()
     local ok, userId = pcall(function()
         return Players:GetUserIdFromNameAsync("AMATOR_TURK")
     end)
     if ok and userId then
-        local thumbOk, thumbUrl = pcall(function()
-            return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.和?.ThumbnailSize, Enum.ThumbnailSize.Size420x420)
-        end)
-        -- Fallback olarak standard headshot/fullbody endpoint
         AvatarImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
-        
-        -- Tam boy görünüm için API URL denemesi
-        pcall(function()
-            local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
-            local response = HttpService:JSONDecode(game:HttpGet(url))
-            if response and response.data and response.data[1] then
-                AvatarImage.Image = response.data[1].imageUrl
-            end
-        end)
     end
 end)
 
--- Instagram Butonu (utku.ss)
 local IGButton = Instance.new("TextButton")
 IGButton.Parent = AboutTab
 IGButton.Size = UDim2.new(1, -5, 0, 35)
@@ -345,16 +333,9 @@ IGButton.MouseButton1Click:Connect(function()
     pcall(function()
         if setclipboard then
             setclipboard("https://instagram.com/utku.ss")
-        end
-        if syn and syn.request then
-            syn.request({
-                Url = "http://127.0.0.1:6463/rpc?v=1",
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json", ["Origin"] = "https://discord.com"},
-                Body = HttpService:JSONEncode({cmd = "BROWSER_OPEN", args = {href = "https://instagram.com/utku.ss"}, nonce = HttpService:GenerateGUID(false)})
-            })
-        elseif request then
-            request({Url = "https://instagram.com/utku.ss", Method = "GET"})
+            IGButton.Text = "Link Kopyalandı!"
+            task.wait(1.5)
+            IGButton.Text = "Instagram: utku.ss (Tıkla)"
         end
     end)
 end)
