@@ -153,6 +153,7 @@ local TargetTab = CreateTab("Oyuncu Seç")
 local ToolsTab = CreateTab("İşlemler")
 local TPTab = CreateTab("Işınlanma")
 local HouseTab = CreateTab("Ev / Ban")
+local VisualsTab = CreateTab("Visuals")
 local AboutTab = CreateTab("Hakkımda")
 
 local function CreateButton(parent, text, callback)
@@ -290,7 +291,60 @@ CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     end
 end)
 
--- ==================== 4. HAKKIMDA SEKMESİ ====================
+-- ==================== 4. VISUALS (ESP) SEKMESİ ====================
+local ESPEnabled = false
+local ESPObjects = {}
+
+CreateButton(VisualsTab, "Oyuncu ESP Aç/Kapat", function()
+    ESPEnabled = not ESPEnabled
+    
+    if not ESPEnabled then
+        for _, v in pairs(ESPObjects) do v:Destroy() end
+        ESPObjects = {}
+    else
+        task.spawn(function()
+            while ESPEnabled do
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                        local head = plr.Character.Head
+                        local myChar = LocalPlayer.Character
+                        
+                        if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                            local dist = math.floor((myChar.HumanoidRootPart.Position - head.Position).Magnitude)
+                            local billboard = head:FindFirstChild("UtkuESP")
+                            
+                            if not billboard then
+                                billboard = Instance.new("BillboardGui")
+                                billboard.Name = "UtkuESP"
+                                billboard.AlwaysOnTop = true
+                                billboard.Size = UDim2.new(0, 120, 0, 30)
+                                billboard.StudsOffset = Vector3.new(0, 2, 0)
+                                billboard.Parent = head
+                                table.insert(ESPObjects, billboard)
+
+                                local textLabel = Instance.new("TextLabel")
+                                textLabel.Name = "ESPLabel"
+                                textLabel.Size = UDim2.new(1, 0, 1, 0)
+                                textLabel.BackgroundTransparency = 1
+                                textLabel.TextColor3 = BEIGE_ACCENT
+                                textLabel.TextSize = 13
+                                textLabel.Font = Enum.Font.SourceSansBold
+                                textLabel.Parent = billboard
+                            end
+                            
+                            if billboard:FindFirstChild("ESPLabel") then
+                                billboard.ESPLabel.Text = plr.Name .. " [" .. tostring(dist) .. "m]"
+                            end
+                        end
+                    end
+                end
+                task.wait(0.5)
+            end
+        end)
+    end
+end)
+
+-- ==================== 5. HAKKIMDA SEKMESİ ====================
 local AboutLabel = Instance.new("TextLabel")
 AboutLabel.Parent = AboutTab
 AboutLabel.Size = UDim2.new(1, -5, 0, 30)
