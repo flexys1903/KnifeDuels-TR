@@ -358,37 +358,40 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ (HARBİ KOPYALAMA SİSTEMİ) ====================
-CreateButton(AvatarTab, "Seçilenin Avatarını Kopyala", function()
+-- ==================== 3. AVATAR SEKMESİ (HARBİ TAM KOPYALAMA: BOY, VÜCUT, SAÇ, HER ŞEY) ====================
+CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
     local myChar = LocalPlayer.Character
-    local targetChar = SelectedTarget.Character
     
     if myChar and myChar:FindFirstChildOfClass("Humanoid") then
         local myHum = myChar:FindFirstChildOfClass("Humanoid")
         
-        -- 1. ADIM: Önce mevcut üstündeki her şeyi (kıyafet, aksesuar, şapka, saç) tamamen temizle
+        -- 1. ADIM: Üstündeki tüm kıyafetleri, aksesuarları, vücut renklerini ve meshleri kökten kazı
         for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("CharacterMesh") then
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("CharacterMesh") or item:IsA("WrapLayer") then
                 item:Destroy()
             end
         end
         
-        -- Eğer hedef oyuncunun karakteri oyunda loaded ise resmi HumanoidDescription ile kopyala
+        task.wait(0.05)
+        
+        -- 2. ADIM: Hedef oyuncunun resmi HumanoidDescription (Boy, Orantı, Vücut Şekli, Saç, Yüz dahil) verisini çek
         local success, desc = pcall(function()
             return Players:GetHumanoidDescriptionFromUserId(SelectedTarget.UserId)
         end)
         
         if success and desc and myHum then
             pcall(function()
+                -- Boy (Height), Genişlik (Width), Derinlik (Depth), Kafa boyutu (Head) ve Vücut oranlarını tam kopyalar
                 myHum:ApplyDescription(desc)
             end)
         end
         
-        -- Ekstra Garanti Adım: Hedef karakterin üzerinde kalan tüm fiziksel parçaları da klonla giydir
+        -- 3. ADIM: Hedef karakterin üzerindeki tüm fiziksel parçaları ve katmanlı kıyafetleri birebir klonla
+        local targetChar = SelectedTarget.Character
         if targetChar then
             for _, item in pairs(targetChar:GetChildren()) do
-                if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") then
+                if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
                     local clone = item:Clone()
                     clone.Parent = myChar
                 end
@@ -401,7 +404,7 @@ CreateButton(AvatarTab, "Üstündeki Her Şeyi Çıkar", function()
     local myChar = LocalPlayer.Character
     if myChar then
         for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") then
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
                 item:Destroy()
             end
         end
