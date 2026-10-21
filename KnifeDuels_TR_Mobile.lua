@@ -580,7 +580,6 @@ CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 CreateToggle(VisualsTab, "Görüş dairesini göster", "ShowFOV")
 CreateToggle(VisualsTab, "2D kutu ESP", "BoxESP")
 CreateToggle(VisualsTab, "İskelet ESP", "SkeletonESP")
-Cre
 CreateToggle(VisualsTab, "Karakter vurgusu ESP", "ChamsESP")
 CreateToggle(VisualsTab, "İsim ESP", "NameESP")
 CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
@@ -943,4 +942,4 @@ RunService.RenderStepped:Connect(function()
 
         updateCrosshair()
     end)
-end)
+    end)
