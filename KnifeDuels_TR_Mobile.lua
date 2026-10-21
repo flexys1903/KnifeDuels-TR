@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = false, -- Çakışmayı önlemek için varsayılan kapalı
+    TeamCheck = false,
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -68,10 +68,6 @@ local Config = {
     Tracers = false,
     Crosshair = false,
     CrosshairSize = 10,
-    
-    -- SkinChanger
-    SelectedKnife = "Glass Karambit",
-    SelectedSkin = "Ruby",
 
     -- Player
     Spinbot = false,
@@ -105,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Optimizasyon Sürümü) Yüklendi!",
+        Text = "FlexysHub (ig:utku.ss) İyi Oyunlar :D!",
         Duration = 3
     })
 end)
@@ -136,18 +132,15 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- OPTIMIZED TEAM CHECK
+-- SAFE TEAM CHECK (ESP BOZMAYAN YAPI)
 ---------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
+    -- Knife duellerinde herkes rakip olduğu için gereksiz takipleşmeyi engelle
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
         return LocalPlayer.Team == player.Team
-    end
-    
-    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
-        return LocalPlayer.TeamColor == player.TeamColor
     end
 
     return false
@@ -361,7 +354,7 @@ local function CreateTab(name, isFirst)
     local btnFrame = Instance.new("Frame")
     btnFrame.Parent = TabBar
     btnFrame.BackgroundTransparency = 1
-    btnFrame.Size = UDim2.new(0.2, -6, 1, 0)
+    btnFrame.Size = UDim2.new(0.25, -5, 1, 0)
 
     local btn = Instance.new("TextButton")
     btn.Parent = btnFrame
@@ -567,11 +560,10 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
 end
 
 ---------------------------------------------------------
--- POPULATE TABBED UI
+-- POPULATE TABBED UI (4 TAB)
 ---------------------------------------------------------
 local CombatTab = CreateTab("Savaş", true)
 local VisualsTab = CreateTab("Görünüm", false)
-local SkinsTab = CreateTab("Skinler", false)
 local PlayerTab = CreateTab("Oyuncu", false)
 local SettingsTab = CreateTab("Ayarlar", false)
 
@@ -590,68 +582,6 @@ CreateToggle(VisualsTab, "İsim ESP", "NameESP")
 CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
 CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
-
--- [SkinChanger (Glass Karambit dahil)]
-local knifeList = {
-    "Glass Karambit", "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
-    "Bayonet", "Flip Knife", "Gut Knife", "Huntsman Knife", 
-    "Falchion Knife", "Bowie Knife", "Shadow Daggers", "Navaja Knife", 
-    "Stiletto Knife", "Ursus Knife", "Classic Knife", "Paracord Knife", 
-    "Survival Knife", "Nomad Knife", "Skeleton Knife"
-}
-
-local skinList = {
-    "Ruby", "Sapphire", "Emerald", "Black Pearl", 
-    "Fade (100%)", "Case Hardened (Blue Gem)", "Lore", "Tiger Tooth", 
-    "Doppler", "Gamma Doppler", "Damascus Steel", "Autotronic", 
-    "Slaughter", "Freehand", "Boreal Forest", "Safari Mesh"
-}
-
-local function applySkinChanger()
-    pcall(function()
-        local char = LocalPlayer.Character
-        local tool = char and char:FindFirstChildOfClass("Tool")
-        if tool then
-            tool.Name = Config.SelectedKnife .. " | " .. Config.SelectedSkin
-            if tool:FindFirstChild("Handle") then
-                for _, child in pairs(tool.Handle:GetChildren()) do
-                    if child:IsA("SpecialMesh") or child:IsA("MeshPart") then
-                        if Config.SelectedKnife == "Glass Karambit" then
-                            child.Transparency = 0.4
-                            child.Color = Color3.fromRGB(200, 230, 255)
-                        else
-                            child.Transparency = 0
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
-
-for _, knifeName in ipairs(knifeList) do
-    CreateButton(SkinsTab, "Bıçak: " .. knifeName, function()
-        Config.SelectedKnife = knifeName
-        applySkinChanger()
-        StarterGui:SetCore("SendNotification", {
-            Title = "SkinChanger",
-            Text = knifeName .. " aktif edildi!",
-            Duration = 2
-        })
-    end)
-end
-
-for _, skinName in ipairs(skinList) do
-    CreateButton(SkinsTab, "Kaplama: " .. skinName, function()
-        Config.SelectedSkin = skinName
-        applySkinChanger()
-        StarterGui:SetCore("SendNotification", {
-            Title = "SkinChanger",
-            Text = skinName .. " uygulandı!",
-            Duration = 2
-        })
-    end)
-end
 
 -- [Player Options]
 CreateToggle(PlayerTab, "Spinbot", "Spinbot")
