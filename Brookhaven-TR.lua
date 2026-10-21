@@ -1,6 +1,7 @@
 -- Roblox Hizmetleri
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Var olan UI varsa temizle
@@ -51,7 +52,7 @@ MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = BG_COLOR
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 360, 0, 270)
+MainFrame.Size = UDim2.new(0, 380, 0, 300)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
@@ -70,13 +71,12 @@ HeaderCorner.Parent = Header
 HeaderTitle.Parent = Header
 HeaderTitle.Size = UDim2.new(1, 0, 1, 0)
 HeaderTitle.BackgroundTransparency = 1
-HeaderTitle.Text = " Brookhaven RP | Utku Özel Versiyon"
+HeaderTitle.Text = " Brookhaven RP | Utku Mega Hub"
 HeaderTitle.TextColor3 = BEIGE_ACCENT
 HeaderTitle.Font = Enum.Font.SourceSansBold
-HeaderTitle.TextSize = 16
-HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+HeaderTitle.TextSize = 15
+HeaderTitle.TextXAlignment = Enum.TextXAlignment.Center
 
--- Menü Açma/Kapatma
 ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
@@ -86,34 +86,34 @@ local TabBar = Instance.new("Frame")
 TabBar.Parent = MainFrame
 TabBar.BackgroundColor3 = HEADER_COLOR
 TabBar.Position = UDim2.new(0, 0, 0, 40)
-TabBar.Size = UDim2.new(0, 100, 1, -40)
+TabBar.Size = UDim2.new(0, 105, 1, -40)
 
 local ContentArea = Instance.new("Frame")
 ContentArea.Parent = MainFrame
 ContentArea.BackgroundTransparency = 1
-ContentArea.Position = UDim2.new(0, 105, 0, 45)
-ContentArea.Size = UDim2.new(1, -110, 1, -50)
+ContentArea.Position = UDim2.new(0, 110, 0, 45)
+ContentArea.Size = UDim2.new(1, -115, 1, -50)
 
 local Tabs = {}
 
 local function CreateTab(name)
     local TabBtn = Instance.new("TextButton")
     TabBtn.Parent = TabBar
-    TabBtn.Size = UDim2.new(1, 0, 0, 35)
-    TabBtn.Position = UDim2.new(0, 0, 0, #Tabs * 35)
+    TabBtn.Size = UDim2.new(1, 0, 0, 32)
+    TabBtn.Position = UDim2.new(0, 0, 0, #Tabs * 32)
     TabBtn.BackgroundColor3 = BTN_COLOR
     TabBtn.BorderSizePixel = 0
     TabBtn.Text = name
     TabBtn.TextColor3 = TEXT_COLOR
     TabBtn.Font = Enum.Font.SourceSansBold
-    TabBtn.TextSize = 13
+    TabBtn.TextSize = 12
 
     local Container = Instance.new("ScrollingFrame")
     Container.Parent = ContentArea
     Container.Size = UDim2.new(1, 0, 1, 0)
     Container.BackgroundTransparency = 1
     Container.Visible = false
-    Container.CanvasSize = UDim2.new(0, 0, 2, 0)
+    Container.CanvasSize = UDim2.new(0, 0, 3, 0)
     Container.ScrollBarThickness = 4
 
     local UIList = Instance.new("UIListLayout")
@@ -144,19 +144,21 @@ end
 
 -- SEKMELERİ OLUŞTUR
 local PlayerTab = CreateTab("Player")
+local TrollTab = CreateTab("Troll / Fling")
 local AvatarTab = CreateTab("Avatar")
 local VisualsTab = CreateTab("Visuals")
-local HouseTab = CreateTab("Ev / Ban")
+local HouseTab = CreateTab("Ev / World")
+local TPTab = CreateTab("Işınlanma")
 
 local function CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
     btn.Parent = parent
-    btn.Size = UDim2.new(1, -5, 0, 32)
+    btn.Size = UDim2.new(1, -5, 0, 30)
     btn.BackgroundColor3 = BTN_COLOR
     btn.Text = text
     btn.TextColor3 = BEIGE_ACCENT
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 13
+    btn.TextSize = 12
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
@@ -173,6 +175,12 @@ CreateButton(PlayerTab, "Hızlandır (Speed: 50)", function()
     end
 end)
 
+CreateButton(PlayerTab, "Süper Hız (Speed: 120)", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 120
+    end
+end)
+
 CreateButton(PlayerTab, "Normal Hız (Speed: 16)", function()
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
@@ -181,7 +189,7 @@ end)
 
 CreateButton(PlayerTab, "Yüksek Zıplama", function()
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = 100
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = 120
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
     end
 end)
@@ -194,10 +202,63 @@ CreateButton(PlayerTab, "Inf Jump (Sınırsız Zıplama)", function()
     end)
 end)
 
--- ==================== 2. AVATAR SEKMESİ (TEMİZLEYİP KOPYALAMA) ====================
-local SelectedPlayer = nil
+-- Noclip (Duvarlardan Geçme)
+local NoclipActive = false
+CreateButton(PlayerTab, "Noclip Aç/Kapat (Duvar Geçiş)", function()
+    NoclipActive = not NoclipActive
+    RunService.Stepped:Connect(function()
+        if NoclipActive and LocalPlayer.Character then
+            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end)
 
-CreateButton(AvatarTab, "En Yakındaki Oyuncuyu Seç", function()
+-- Fly (Uçma)
+local Flying = false
+CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
+    Flying = not Flying
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    if Flying then
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "UtkuFly"
+        bv.MaxForce = Vector3.new(0, 0, 0)
+        bv.Velocity = Vector3.new(0,0,0)
+        bv.Parent = char.HumanoidRootPart
+        
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "UtkuGyro"
+        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bg.P = 9e4
+        bg.CFrame = char.HumanoidRootPart.CFrame
+        bg.Parent = char.HumanoidRootPart
+        
+        task.spawn(function()
+            while Flying do
+                task.wait()
+                local cam = workspace.CurrentCamera
+                bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+                bv.Velocity = cam.CFrame.LookVector * 60
+                bg.CFrame = cam.CFrame
+            end
+            if char.HumanoidRootPart:FindFirstChild("UtkuFly") then char.HumanoidRootPart.UtkuFly:Destroy() end
+            if char.HumanoidRootPart:FindFirstChild("UtkuGyro") then char.HumanoidRootPart.UtkuGyro:Destroy() end
+        end)
+    else
+        if char.HumanoidRootPart:FindFirstChild("UtkuFly") then char.HumanoidRootPart.UtkuFly:Destroy() end
+        if char.HumanoidRootPart:FindFirstChild("UtkuGyro") then char.HumanoidRootPart.UtkuGyro:Destroy() end
+    end
+end)
+
+-- ==================== 2. TROLL / FLING SEKMESİ ====================
+local SelectedTarget = nil
+
+CreateButton(TrollTab, "En Yakındaki Hedefi Seç", function()
     local myChar = LocalPlayer.Character
     if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
     
@@ -215,29 +276,75 @@ CreateButton(AvatarTab, "En Yakındaki Oyuncuyu Seç", function()
     end
     
     if closestPlr then
-        SelectedPlayer = closestPlr
-        print("Seçilen Oyuncu: " .. SelectedPlayer.Name)
+        SelectedTarget = closestPlr
+        print("Hedef Seçildi: " .. SelectedTarget.Name)
     end
 end)
 
--- ÖNCE ÜSTÜNDEKİLERİ TEMİZLE, SONRA KOPYALA
+-- Fling (Oyuncuyu Havaya/Uzağa Fırlatma)
+local Flinging = false
+CreateButton(TrollTab, "Seçilen Kişiyi Flingle (Fırlat)", function()
+    if not SelectedTarget or not SelectedTarget.Character then return end
+    Flinging = not Flinging
+    
+    task.spawn(function()
+        local myChar = LocalPlayer.Character
+        local targetChar = SelectedTarget.Character
+        
+        if myChar and targetChar and myChar:FindFirstChild("HumanoidRootPart") and targetChar:FindFirstChild("HumanoidRootPart") then
+            local bvo = Instance.new("BodyAngularVelocity")
+            bvo.Name = "FlingVelocity"
+            bvo.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bvo.AngularVelocity = Vector3.new(0, 99999, 0)
+            bvo.Parent = myChar.HumanoidRootPart
+            
+            while Flinging and myChar and targetChar and targetChar:FindFirstChild("HumanoidRootPart") do
+                myChar.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 0, 0)
+                RunService.Heartbeat:Wait()
+            end
+            
+            if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
+                myChar.HumanoidRootPart.FlingVelocity:Destroy()
+            end
+        end
+    end)
+end)
+
+-- Spin Bot (Hızlıca Dönme)
+local Spinning = false
+CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
+    Spinning = not Spinning
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        if Spinning then
+            local spin = Instance.new("BodyAngularVelocity")
+            spin.Name = "UtkuSpin"
+            spin.MaxTorque = Vector3.new(0, math.huge, 0)
+            spin.AngularVelocity = Vector3.new(0, 50, 0)
+            spin.Parent = char.HumanoidRootPart
+        else
+            if char.HumanoidRootPart:FindFirstChild("UtkuSpin") then
+                char.HumanoidRootPart.UtkuSpin:Destroy()
+            end
+        end
+    end
+end)
+
+-- ==================== 3. AVATAR SEKMESİ ====================
 CreateButton(AvatarTab, "Seçilinin Avatarını Kopyala", function()
-    if not SelectedPlayer or not SelectedPlayer.Character then return end
+    if not SelectedTarget or not SelectedTarget.Character then return end
     local myChar = LocalPlayer.Character
-    local targetChar = SelectedPlayer.Character
+    local targetChar = SelectedTarget.Character
     
     if myChar and targetChar then
-        -- 1. Aşama: Karakterinin üzerindeki TÜM aksesuar ve kıyafetleri sök
         for _, item in pairs(myChar:GetChildren()) do
             if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") then
                 item:Destroy()
             end
         end
         
-        -- Bekleme ekleyerek kıyafetlerin tamamen kaldırıldığından emin olalım
         task.wait(0.1)
         
-        -- 2. Aşama: Hedef oyuncunun kıyafet ve aksesuarlarını klonlayıp giydir
         for _, item in pairs(targetChar:GetChildren()) do
             if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") then
                 local clone = item:Clone()
@@ -258,7 +365,7 @@ CreateButton(AvatarTab, "Üstündeki Her Şeyi Çıkar", function()
     end
 end)
 
--- ==================== 3. VISUALS (ESP) SEKMESİ ====================
+-- ==================== 4. VISUALS (ESP) SEKMESİ ====================
 local ESPEnabled = false
 local ESPObjects = {}
 
@@ -311,7 +418,7 @@ CreateButton(VisualsTab, "Oyuncu ESP Aç/Kapat", function()
     end
 end)
 
--- ==================== 4. EV BAN KALDIRMA SEKMESİ ====================
+-- ==================== 5. EV BAN KALDIRMA SEKMESİ ====================
 CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj.Name == "BanBlock" or obj.Name == "BanBariyer" or obj.Name == "HouseBan" or (obj:IsA("BasePart") and string.find(string.lower(obj.Name), "ban")) then
@@ -324,6 +431,32 @@ CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
             if v.Name == "Ban" or v.Name == "HouseBan" then
                 v:Destroy()
             end
+        end
+    end
+end)
+
+-- ==================== 6. IŞINLANMA (TELEPORT) SEKMESİ ====================
+local Locations = {
+    ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
+    ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
+    ["Hastane"] = Vector3.new(-220, 18, 50),
+    ["Banka"] = Vector3.new(-30, 18, -100),
+    ["Okul"] = Vector3.new(-330, 18, 200),
+    ["Kasa / Gizli Oda"] = Vector3.new(-50, 20, -110)
+}
+
+for name, pos in pairs(Locations) do
+    CreateButton(TPTab, name .. "'a Işınlan", function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
+        end
+    end)
+end
+
+CreateButton(TPTab, "Seçilen Oyuncuya Işınlan", function()
+    if SelectedTarget and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = SelectedTarget.Character.HumanoidRootPart.CFrame
         end
     end
 end)
