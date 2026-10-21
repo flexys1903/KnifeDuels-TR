@@ -105,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Güncel & Optimize Sürüm) Yüklendi!",
+        Text = "FlexysHub (Gelişmiş SkinChanger) Yüklendi!",
         Duration = 3
     })
 end)
@@ -133,6 +133,73 @@ ScreenGui.Parent = parent
 pcall(function()
     if syn and syn.protect_gui then syn.protect_gui(ScreenGui)
     elseif ProtectInstance then ProtectInstance(ScreenGui) end
+end)
+
+---------------------------------------------------------
+-- REAL SKINCHANGER ENGINE FOR KNIFE DUELS
+---------------------------------------------------------
+local function ApplySkinToModel(obj)
+    if not obj then return end
+
+    -- Modelin veya parçanın rengini ve dokusunu değiştir
+    if obj:IsA("MeshPart") or obj:IsA("BasePart") then
+        if Config.SelectedKnife == "Glass Karambit" then
+            obj.Material = Enum.Material.Glass
+            obj.Transparency = 0.35
+            obj.Color = Color3.fromRGB(160, 210, 255)
+        else
+            obj.Transparency = 0
+            obj.Material = Enum.Material.SmoothPlastic
+            
+            -- Kaplama Renk Seçenekleri Enjeksiyonu
+            if Config.SelectedSkin == "Ruby" then
+                obj.Color = Color3.fromRGB(255, 30, 70)
+            elseif Config.SelectedSkin == "Sapphire" then
+                obj.Color = Color3.fromRGB(30, 100, 255)
+            elseif Config.SelectedSkin == "Emerald" then
+                obj.Color = Color3.fromRGB(30, 255, 120)
+            elseif Config.SelectedSkin == "Black Pearl" then
+                obj.Color = Color3.fromRGB(35, 35, 45)
+            elseif Config.SelectedSkin == "Gold" then
+                obj.Color = Color3.fromRGB(255, 215, 0)
+            end
+        end
+    end
+
+    for _, child in pairs(obj:GetChildren()) do
+        ApplySkinToModel(child)
+    end
+end
+
+local function ProcessKnifeSkinChanger()
+    pcall(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+
+        -- Elde tutulan Tool veya Karakter Modelindeki Bıçakları Tara
+        for _, item in pairs(char:GetChildren()) do
+            if item:IsA("Tool") or string.find(string.lower(item.Name), "knife") or string.find(string.lower(item.Name), "sword") then
+                ApplySkinToModel(item)
+            end
+        end
+
+        -- Kamera / FPS Görünümündeki Bıçakları Tara
+        local cam = Workspace.CurrentCamera
+        if cam then
+            for _, item in pairs(cam:GetChildren()) do
+                if item:IsA("Model") or item:IsA("Tool") then
+                    ApplySkinToModel(item)
+                end
+            end
+        end
+    end)
+end
+
+-- Bıçağı eline aldığında veya sürekli olarak derinden uygula
+RunService.Stepped:Connect(function()
+    if Config.SelectedKnife and Config.SelectedSkin then
+        ProcessKnifeSkinChanger()
+    end
 end)
 
 ---------------------------------------------------------
@@ -591,63 +658,27 @@ CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
 CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
 
--- [SkinChanger (Glass Karambit dahil)]
-local knifeList = {
-    "Glass Karambit", "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
-    "Bayonet", "Flip Knife", "Gut Knife", "Huntsman Knife", 
-    "Falchion Knife", "Bowie Knife", "Shadow Daggers", "Navaja Knife", 
-    "Stiletto Knife", "Ursus Knife", "Classic Knife", "Paracord Knife", 
-    "Survival Knife", "Nomad Knife", "Skeleton Knife"
-}
-
-local skinList = {
-    "Ruby", "Sapphire", "Emerald", "Black Pearl", 
-    "Fade (100%)", "Case Hardened (Blue Gem)", "Lore", "Tiger Tooth", 
-    "Doppler", "Gamma Doppler", "Damascus Steel", "Autotronic", 
-    "Slaughter", "Freehand", "Boreal Forest", "Safari Mesh"
-}
-
-local function applySkinChanger()
-    pcall(function()
-        local char = LocalPlayer.Character
-        local tool = char and char:FindFirstChildOfClass("Tool")
-        if tool then
-            tool.Name = Config.SelectedKnife .. " | " .. Config.SelectedSkin
-            if tool:FindFirstChild("Handle") then
-                for _, child in pairs(tool.Handle:GetChildren()) do
-                    if child:IsA("SpecialMesh") or child:IsA("MeshPart") then
-                        if Config.SelectedKnife == "Glass Karambit" then
-                            child.Transparency = 0.4
-                            child.Color = Color3.fromRGB(200, 230, 255)
-                        else
-                            child.Transparency = 0
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
+-- [SkinChanger]
+local knifeList = {"Glass Karambit", "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife"}
+local skinList = {"Ruby", "Sapphire", "Emerald", "Black Pearl", "Gold"}
 
 for _, knifeName in ipairs(knifeList) do
-    CreateButton(SkinsTab, "Bıçak: " .. knifeName, function()
+    CreateButton(SkinsTab, "Bıçak Modeli: " .. knifeName, function()
         Config.SelectedKnife = knifeName
-        applySkinChanger()
         StarterGui:SetCore("SendNotification", {
             Title = "SkinChanger",
-            Text = knifeName .. " aktif edildi!",
+            Text = knifeName .. " seçildi!",
             Duration = 2
         })
     end)
 end
 
 for _, skinName in ipairs(skinList) do
-    CreateButton(SkinsTab, "Kaplama: " .. skinName, function()
+    CreateButton(SkinsTab, "Kaplama Rengi: " .. skinName, function()
         Config.SelectedSkin = skinName
-        applySkinChanger()
         StarterGui:SetCore("SendNotification", {
             Title = "SkinChanger",
-            Text = skinName .. " uygulandı!",
+            Text = skinName .. " kaplaması seçildi!",
             Duration = 2
         })
     end)
