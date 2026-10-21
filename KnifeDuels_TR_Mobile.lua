@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = false, -- Varsayılan kapalı (Knife Duels serbest takımsız duello modu için)
+    TeamCheck = true, -- Yeşil Renk Kontrolü Aktif!
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -105,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (TeamCheck Düzeltildi) Yüklendi!",
+        Text = "FlexysHub (Yeşil Renk Takım Algılama) Yüklendi!",
         Duration = 3
     })
 end)
@@ -136,19 +136,35 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- FIXED TEAM CHECK
+-- GREEN COLOR TEAM DETECTOR (YEŞİL RENK KONTROLÜ)
 ---------------------------------------------------------
+local function IsGreenColor(color)
+    if not color then return false end
+    -- Rengin G (Yeşil) bileşeninin R (Kırmızı) ve B (Mavi) bileşeninden belirgin şekilde fazla olmasını doğrula
+    return (color.G > 0.4 and color.G > color.R and color.G > color.B)
+end
+
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    -- Oyun içi takım kontrolü (Sadece takımlar aktif ve farklıysa çalışır)
+    -- 1. Standart Roblox Takım Kontrolü
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
-        return LocalPlayer.Team == player.Team
+        if LocalPlayer.Team == player.Team then return true end
     end
-    
-    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
-        return LocalPlayer.TeamColor == player.TeamColor
+
+    -- 2. Oyuncunun Modelindeki Yeşil Renk Elemanlarını Taramak
+    local char = player.Character
+    if char then
+        for _, child in pairs(char:GetDescendants()) do
+            if child:IsA("TextLabel") or child:IsA("TextButton") then
+                if IsGreenColor(child.TextColor3) then return true end
+            elseif child:IsA("Highlight") then
+                if IsGreenColor(child.FillColor) or IsGreenColor(child.OutlineColor) then return true end
+            elseif child:IsA("BasePart") then
+                if IsGreenColor(child.Color) then return true end
+            end
+        end
     end
 
     return false
@@ -579,7 +595,7 @@ local SettingsTab = CreateTab("Ayarlar", false)
 -- [Combat Options]
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
-CreateToggle(CombatTab, "Takım kontrolü", "TeamCheck")
+CreateToggle(CombatTab, "Takım kontrolü (Yeşil Renk)", "TeamCheck")
 CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 
 -- [Visual Options]
@@ -824,139 +840,4 @@ end
 RunService.RenderStepped:Connect(function()
     pcall(function()
         local cam = Workspace.CurrentCamera
-        if not cam then return end
-
-        local screenCenter = cam.ViewportSize / 2
-
-        if FOVFrame then
-            FOVFrame.Visible = Config.ShowFOV
-            if Config.ShowFOV then
-                FOVFrame.Size = UDim2.new(0, Config.FOVRadius * 2, 0, Config.FOVRadius * 2)
-                FOVFrame.Position = UDim2.new(0, screenCenter.X, 0, screenCenter.Y)
-            end
-        end
-
-        local espFolder = getESPFolder()
-        local closestTarget = nil
-        local shortestDistance = Config.FOVRadius
-
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player == LocalPlayer then continue end
-
-            local pName = tostring(player.UserId)
-            local isFriendly = IsTeammate(player)
-
-            -- Eğer gerçekten takım arkadaşıysa ESP'lerini gizle ve atla
-            if isFriendly then
-                local box = espFolder:FindFirstChild(pName .. "_Box")
-                if box then box.Visible = false end
-                local t = espFolder:FindFirstChild(pName .. "_Tracer")
-                if t then t.Visible = false end
-                local hl = espFolder:FindFirstChild(pName .. "_Chams")
-                if hl then hl.Enabled = false end
-                continue
-            end
-
-            local char = player.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            local head = char and char:FindFirstChild("Head")
-            local hum = char and char:FindFirstChild("Humanoid")
-            local isAlive = hum and hum.Health > 0
-
-            if isAlive and root and head then
-                local rootPos, onScreen = cam:WorldToViewportPoint(root.Position)
-
-                local targetPart = char:FindFirstChild(Config.TargetPart)
-                if targetPart then
-                    local screenPos, tOnScreen = cam:WorldToViewportPoint(targetPart.Position)
-                    if tOnScreen then
-                        local isVis = true
-                        if Config.WallCheck then
-                            isVis = isPartVisible(targetPart, char)
-                        end
-                        if isVis then
-                            local distance = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
-                            if distance < shortestDistance then
-                                closestTarget = targetPart
-                                shortestDistance = distance
-                            end
-                        end
-                    end
-                end
-
-                if Config.BoxESP and onScreen then
-                    local headPos = cam:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
-                    local legPos = cam:WorldToViewportPoint(root.Position - Vector3.new(0, 3, 0))
-                    local height = math.abs(headPos.Y - legPos.Y)
-                    local width = height * 0.6
-                    
-                    local box = espFolder:FindFirstChild(pName .. "_Box")
-                    if not box then
-                        box = Instance.new("Frame")
-                        box.Name = pName .. "_Box"
-                        box.BackgroundTransparency = 1
-                        box.Parent = espFolder
-                        local stroke = Instance.new("UIStroke")
-                        stroke.Color = Theme.TextWhite
-                        stroke.Thickness = 1.5
-                        stroke.Parent = box
-                    end
-                    box.Size = UDim2.new(0, width, 0, height)
-                    box.Position = UDim2.new(0, rootPos.X - width / 2, 0, headPos.Y)
-                    box.Visible = true
-                else
-                    local box = espFolder:FindFirstChild(pName .. "_Box")
-                    if box then box.Visible = false end
-                end
-
-                if Config.Tracers and onScreen then
-                    DrawLineGUI(espFolder, pName .. "_Tracer", screenCenter, Vector2.new(rootPos.X, rootPos.Y), Theme.Accent, 1.5)
-                else
-                    local t = espFolder:FindFirstChild(pName .. "_Tracer")
-                    if t then t.Visible = false end
-                end
-
-                if Config.ChamsESP then
-                    local hl = espFolder:FindFirstChild(pName .. "_Chams")
-                    if not hl then
-                        hl = Instance.new("Highlight")
-                        hl.Name = pName .. "_Chams"
-                        hl.FillColor = Theme.Accent
-                        hl.FillTransparency = 0.5
-                        hl.OutlineColor = Theme.TextWhite
-                        hl.OutlineTransparency = 0.2
-                        hl.Parent = espFolder
-                    end
-                    hl.Adornee = char
-                    hl.Enabled = true
-                else
-                    local hl = espFolder:FindFirstChild(pName .. "_Chams")
-                    if hl then hl.Enabled = false end
-                end
-            else
-                local box = espFolder:FindFirstChild(pName .. "_Box")
-                if box then box.Visible = false end
-                local t = espFolder:FindFirstChild(pName .. "_Tracer")
-                if t then t.Visible = false end
-                local hl = espFolder:FindFirstChild(pName .. "_Chams")
-                if hl then hl.Enabled = false end
-            end
-        end
-
-        if Config.Aimbot and isAimingKey and closestTarget then
-            local newCFrame = CFrame.new(cam.CFrame.Position, closestTarget.Position)
-            cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
-        end
-
-        if Config.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(Config.SpinSpeed), 0)
-        end
-
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-            local lp_hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if Config.JumpPower ~= 50 and lp_hum.JumpPower ~= Config.JumpPower then lp_hum.JumpPower = Config.JumpPower end
-        end
-
-        updateCrosshair()
-    end)
-end)
+        if not cam me... (truncated)
