@@ -14,7 +14,6 @@ HomeSection:NewLabel("Oyun: Brookhaven RP")
 local PlayerTab = Window:NewTab("Player")
 local PlayerSection = PlayerTab:NewSection("Karakter Ayarları")
 
--- Yürüme Hızı (WalkSpeed) Ayarı
 PlayerSection:NewSlider("Walkspeed", "Karakter hızını değiştirir", 250, 16, function(s)
     local char = game.Players.LocalPlayer.Character
     if char and char:FindFirstChildOfClass("Humanoid") then
@@ -22,7 +21,6 @@ PlayerSection:NewSlider("Walkspeed", "Karakter hızını değiştirir", 250, 16,
     end
 end)
 
--- Zıplama Gücü (JumpPower) Ayarı
 PlayerSection:NewSlider("Jumppower", "Zıplama yüksekliğini değiştirir", 250, 50, function(j)
     local char = game.Players.LocalPlayer.Character
     if char and char:FindFirstChildOfClass("Humanoid") then
@@ -31,7 +29,6 @@ PlayerSection:NewSlider("Jumppower", "Zıplama yüksekliğini değiştirir", 250
     end
 end)
 
--- Sınırsız Zıplama (Inf Jump)
 PlayerSection:NewButton("Inf Jumps", "Havada sınırsız zıplamanı sağlar", function()
     local InfiniteJumpEnabled = true
     game:GetService("UserInputService").JumpRequest:Connect(function()
@@ -44,7 +41,71 @@ PlayerSection:NewButton("Inf Jumps", "Havada sınırsız zıplamanı sağlar", f
     end)
 end)
 
--- 3. AVATAR & KIYAFET (AVATAR COPY) SEKMESİ
+-- 3. GÖRSEL / ESP (VISUALS) SEKMESİ
+local VisualsTab = Window:NewTab("Visuals")
+local VisualsSection = VisualsTab:NewSection("ESP & Göstergeler")
+
+local ESPEnabled = false
+local ESPObjects = {}
+
+local function ClearESP()
+    for _, esp in pairs(ESPObjects) do
+        if esp then esp:Destroy() end
+    end
+    ESPObjects = {}
+end
+
+VisualsSection:NewToggle("Oyuncu ESP (İsim & Mesafe)", "Duvar arkasından oyuncuları ve mesafeyi gösterir", function(state)
+    ESPEnabled = state
+    if not ESPEnabled then
+        ClearESP()
+    else
+        task.spawn(function()
+            while ESPEnabled do
+                for _, plr in pairs(game.Players:GetPlayers()) do
+                    if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                        local head = plr.Character.Head
+                        local myChar = game.Players.LocalPlayer.Character
+                        
+                        if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                            local dist = math.floor((myChar.HumanoidRootPart.Position - head.Position).Magnitude)
+                            local billboard = head:FindFirstChild("UtkuESP")
+                            
+                            if not billboard then
+                                billboard = Instance.new("BillboardGui")
+                                billboard.Name = "UtkuESP"
+                                billboard.AlwaysOnTop = true
+                                billboard.Size = UDim2.new(0, 150, 0, 40)
+                                billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+                                billboard.Parent = head
+                                table.insert(ESPObjects, billboard)
+
+                                local textLabel = Instance.new("TextLabel")
+                                textLabel.Name = "ESPLabel"
+                                textLabel.Size = UDim2.new(1, 0, 1, 0)
+                                textLabel.BackgroundTransparency = 1
+                                textLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                                textLabel.TextStrokeTransparency = 0
+                                textLabel.TextScaled = false
+                                textLabel.TextSize = 14
+                                textLabel.Font = Enum.Font.SourceSansBold
+                                textLabel.Parent = billboard
+                            end
+                            
+                            if billboard:FindFirstChild("ESPLabel") then
+                                billboard.ESPLabel.Text = plr.Name .. " [" .. tostring(dist) .. "m]"
+                            end
+                        end
+                    end
+                end
+                task.wait(0.5)
+            end
+            ClearESP()
+        end)
+    end
+end)
+
+-- 4. AVATAR SEKMESİ
 local AvatarTab = Window:NewTab("Avatar")
 local AvatarSection = AvatarTab:NewSection("Avatar Kopyalama")
 
@@ -60,7 +121,6 @@ AvatarSection:NewDropdown("Oyuncu Seç", "Kıyafetini almak istediğin kişiyi s
     SelectedAvatarPlayer = t
 end)
 
--- Avatar Kopyalama Butonu
 AvatarSection:NewButton("Avatarı Kopyala", "Seçtiğin oyuncunun kıyafet ve görünümünü alır", function()
     local targetPlr = game.Players:FindFirstChild(SelectedAvatarPlayer)
     local myChar = game.Players.LocalPlayer.Character
@@ -70,7 +130,6 @@ AvatarSection:NewButton("Avatarı Kopyala", "Seçtiğin oyuncunun kıyafet ve g�
         local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
         
         if targetHumanoid and myHumanoid then
-            -- HumanoidDescription çekip kendi karakterimize uyguluyoruz
             local success, desc = pcall(function()
                 return game.Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
             end)
@@ -78,7 +137,6 @@ AvatarSection:NewButton("Avatarı Kopyala", "Seçtiğin oyuncunun kıyafet ve g�
             if success and desc then
                 myHumanoid:ApplyDescription(desc)
             else
-                -- Eğer GetHumanoidDescription çalışmazsa karakter üzerindeki aksesuarları/kıyafetleri kopyalar
                 for _, item in pairs(targetPlr.Character:GetChildren()) do
                     if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
                         local clonedItem = item:Clone()
@@ -90,7 +148,6 @@ AvatarSection:NewButton("Avatarı Kopyala", "Seçtiğin oyuncunun kıyafet ve g�
     end
 end)
 
--- Kendi Avatarına Geri Dön / Sıfrla
 AvatarSection:NewButton("Kendi Avatarına Dön", "Kendi orijinal avatarını yükler", function()
     local myChar = game.Players.LocalPlayer.Character
     local myHumanoid = myChar and myChar:FindFirstChildOfClass("Humanoid")
@@ -102,7 +159,32 @@ AvatarSection:NewButton("Kendi Avatarına Dön", "Kendi orijinal avatarını yü
     end
 end)
 
--- 4. IŞINLANMA (TELEPORT) SEKMESİ
+-- 5. BROOKHAVEN ÖZEL (EV & BAN) SEKMESİ
+local HouseTab = Window:NewTab("Ev / World")
+local HouseSection = HouseTab:NewSection("Ev Kısıtlamaları")
+
+HouseSection:NewButton("Ev Banlarını Kaldır (Unban All)", "Seni banlayan evlerin kapı/ban engellerini söker", function()
+    local count = 0
+    -- Brookhaven ev sistemindeki ban/bariyer nesnelerini temizler
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name == "BanBlock" or obj.Name == "BanBariyer" or obj.Name == "HouseBan" or (obj:IsA("BasePart") and string.find(string.lower(obj.Name), "ban")) then
+            obj:Destroy()
+            count = count + 1
+        end
+    end
+    
+    -- Karakterdeki ban durumunu resetleme
+    local plr = game.Players.LocalPlayer
+    if plr and plr.Character then
+        for _, v in pairs(plr.Character:GetDescendants()) do
+            if v.Name == "Ban" or v.Name == "HouseBan" then
+                v:Destroy()
+            end
+        end
+    end
+end)
+
+-- 6. IŞINLANMA (TELEPORT) SEKMESİ
 local TP = Window:NewTab("Teleports")
 local TPSection = TP:NewSection("Oyuncu Işınlanma")
 
@@ -119,7 +201,7 @@ TPSection:NewButton("Seçilen Kişiye Işınlan", "Oyuncunun yanına gider", fun
     end
 end)
 
--- 5. AYARLAR (SETTINGS) SEKMESİ
+-- 7. AYARLAR (SETTINGS) SEKMESİ
 local SettingsTab = Window:NewTab("Settings")
 local SettingsSection = SettingsTab:NewSection("Arayüz Ayarları")
 
