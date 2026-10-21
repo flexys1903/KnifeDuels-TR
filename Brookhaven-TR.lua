@@ -310,7 +310,7 @@ CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
     end
 end)
 
--- ==================== 2. TROLL / FLING SEKMESİ (PRO MOTOR) ====================
+-- ==================== 2. TROLL / FLING SEKMESİ ====================
 local FlingActive = false
 local OriginalPosition = nil
 
@@ -324,7 +324,6 @@ CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
     if FlingActive then
         OriginalPosition = myChar.HumanoidRootPart.CFrame
         
-        -- VIP Koltuğu Otomatik Kuşanma
         local equippedTool = myChar:FindFirstChildOfClass("Tool")
         if not equippedTool or not (string.find(string.lower(equippedTool.Name), "couch") or string.find(string.lower(equippedTool.Name), "chair") or string.find(string.lower(equippedTool.Name), "koltuk")) then
             local backpack = LocalPlayer:FindFirstChild("Backpack")
@@ -385,26 +384,54 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ (PRO LOADSTRING / HUB MOTORU) ====================
+-- ==================== 3. AVATAR SEKMESİ (KESİN ÇÖZÜM DEXTER/HEXAGON MOTORU) ====================
 CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
     
-    -- Profesyonel Hub altyapılarının (Dexter tarzı) kullandığı doğrudan veri eşitleme motoru
-    pcall(function()
-        local targetUserId = SelectedTarget.UserId
-        local myChar = LocalPlayer.Character
-        if myChar and myChar:FindFirstChildOfClass("Humanoid") then
-            local desc = Players:GetHumanoidDescriptionFromUserId(targetUserId)
-            myChar.Humanoid:ApplyDescriptionReset(desc)
+    local targetPlr = SelectedTarget
+    local myChar = LocalPlayer.Character
+    if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
+    
+    -- 1. Hedef oyuncunun üstündeki giysi ve aksesuarların var olan model kopyasını doğrudan alıp yapıştırma (En Kesin Yöntem)
+    local targetChar = targetPlr.Character
+    if targetChar then
+        -- Önce üstümüzü tamamen temizle
+        for _, item in pairs(myChar:GetChildren()) do
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
+                item:Destroy()
+            end
         end
-    end)
+        
+        task.wait(0.05)
+        
+        -- Hedefin üzerindeki tüm parça ve aksesuarları birebir klonla
+        for _, item in pairs(targetChar:GetChildren()) do
+            if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
+                local clone = item:Clone()
+                clone.Parent = myChar
+            end
+        end
+        
+        -- Boy ve orantı değerlerini doğrudan eşitle
+        local targetHum = targetChar:FindFirstChildOfClass("Humanoid")
+        local myHum = myChar:FindFirstChildOfClass("Humanoid")
+        
+        if targetHum and myHum then
+            pcall(function()
+                myHum.BodyDepthScale.Value = targetHum.BodyDepthScale.Value
+                myHum.BodyHeightScale.Value = targetHum.BodyHeightScale.Value
+                myHum.BodyWidthScale.Value = targetHum.BodyWidthScale.Value
+                myHum.HeadScale.Value = targetHum.HeadScale.Value
+            end)
+        end
+    end
 end)
 
 CreateButton(AvatarTab, "Üstündeki Her Şeyi Çıkar", function()
     local myChar = LocalPlayer.Character
     if myChar then
         for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
                 item:Destroy()
             end
         end
@@ -492,7 +519,7 @@ end)
 
 local Locations = {
     ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
-    ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
+    ["Karakol / Polis"] = WordVector3 and Vector3.new(-140, 18, 180) or Vector3.new(-140, 18, 180),
     ["Hastane"] = Vector3.new(-220, 18, 50),
     ["Banka"] = Vector3.new(-30, 18, -100),
     ["Okul"] = Vector3.new(-330, 18, 200),
