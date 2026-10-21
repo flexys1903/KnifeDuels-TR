@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = false, -- Çakışmayı önlemek için varsayılan kapalı
+    TeamCheck = false,
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -105,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Optimizasyon Sürümü) Yüklendi!",
+        Text = "FlexysHub (Güncel & Optimize Sürüm) Yüklendi!",
         Duration = 3
     })
 end)
