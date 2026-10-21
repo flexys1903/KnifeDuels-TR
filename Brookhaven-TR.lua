@@ -11,14 +11,50 @@ local CustomTheme = {
 }
 
 -- Yüzen (Draggable) Pencere Oluştur
-local Window = Library.CreateLib("Brookhaven | Utku Özel Versiyon", CustomTheme)
+local Window = Library.CreateLib("Brookhaven | ig:utku.ss", CustomTheme)
+
+-- ====================================================================
+-- MOBİL İÇİN YÜZEN AÇ/KAPAT BUTONU (FLOATING TOGGLE BUTTON FOR MOBILE)
+-- ====================================================================
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleBtn = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+
+ScreenGui.Name = "UtkuMobileGui"
+ScreenGui.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+ToggleBtn.Name = "ToggleBtn"
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Position = UDim2.new(0.02, 0, 0.2, 0) -- Ekranın sol üst alanında durur
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.Text = "MENU"
+ToggleBtn.TextColor3 = Color3.fromRGB(195, 180, 155)
+ToggleBtn.TextSize = 14.000
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true -- Mobilde ekranda parmağınla istediğin yere taşıyabilirsin
+
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = ToggleBtn
+
+-- Dokunulduğunda / Tıklandığında Menüyü Aç / Kapat
+ToggleBtn.MouseButton1Click:Connect(function()
+    Library:ToggleUI()
+end)
+
+-- ====================================================================
+-- SEKMELER VE ÖZELLİKLER
+-- ====================================================================
 
 -- 1. ANA SAYFA (HOME) SEKMESİ
 local Home = Window:NewTab("Home")
 local HomeSection = Home:NewSection("Genel Bilgi")
 
 HomeSection:NewLabel("Hoş geldin, Utku!")
-HomeSection:NewLabel("Bu script senin için özel tasarlandı.")
+HomeSection:NewLabel("Bu script PC & Mobil uyumludur.")
 HomeSection:NewLabel("Oyun: Brookhaven RP")
 
 -- 2. OYUNCU (PLAYER) SEKMESİ
@@ -216,6 +252,6 @@ SettingsSection:NewButton("Menüyü Gizle / Küçült", "Arayüzü ekrandan sakl
     Library:ToggleUI()
 end)
 
-SettingsSection:NewKeybind("UI Kapat/Aç Tuşu", "Klavyeden menüyü gizler veya açar", Enum.KeyCode.F, function()
+SettingsSection:NewKeybind("UI Kapat/Aç Tuşu (PC)", "Klavyeden menüyü gizler veya açar", Enum.KeyCode.F, function()
     Library:ToggleUI()
 end)
