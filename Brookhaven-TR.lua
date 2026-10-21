@@ -5,26 +5,6 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- ==================== SUNUCU TARAFI (SERVER SCRIPT MANTIĞI) ====================
--- Not: Bu kısım sunucuda çalışır ve avatarı kusursuz kopyalayan motoru tetikler.
-local RemoteName = "UtkuCopyAvatarRE"
-local CopyRemote = ReplicatedStorage:FindFirstChild(RemoteName)
-
-if not CopyRemote and RunService:IsServer() then
-    CopyRemote = Instance.new("RemoteEvent")
-    CopyRemote.Name = RemoteName
-    CopyRemote.Parent = ReplicatedStorage
-end
-
--- Eğer exploit ile çalıştırıyorsan ve sunucu event'i yoksa oluşturmayı dener
-pcall(function()
-    if not ReplicatedStorage:FindFirstChild(RemoteName) then
-        local r = Instance.new("RemoteEvent")
-        r.Name = RemoteName
-        r.Parent = ReplicatedStorage
-    end
-end)
-
 -- Var olan UI varsa temizle
 if game:GetService("CoreGui"):FindFirstChild("UtkuBrookhavenGUI") then
     game:GetService("CoreGui").UtkuBrookhavenGUI:Destroy()
@@ -36,7 +16,7 @@ ScreenGui.Name = "UtkuBrookhavenGUI"
 ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Renk Paleti (Gri & Bej - Pro Tasarım)
+-- Renk Paleti (Gri & Bej - Utku Özel Tasarım)
 local BG_COLOR = Color3.fromRGB(40, 40, 40)       -- Koyu Gri
 local HEADER_COLOR = Color3.fromRGB(30, 30, 30)   -- Başlık Grisi
 local BEIGE_ACCENT = Color3.fromRGB(200, 185, 155) -- Bej Vurgu Rengi
@@ -89,10 +69,11 @@ local HeaderCorner = Instance.new("UICorner")
 HeaderCorner.CornerRadius = UDim.new(0, 10)
 HeaderCorner.Parent = Header
 
+-- ASLA DEĞİŞMEZ KİMLİK: Sadece senin adın yazar!
 HeaderTitle.Parent = Header
 HeaderTitle.Size = UDim2.new(1, 0, 1, 0)
 HeaderTitle.BackgroundTransparency = 1
-HeaderTitle.Text = " Brookhaven RP | 1 9 0 3"
+HeaderTitle.Text = " Brookhaven RP | Utku Mega Hub"
 HeaderTitle.TextColor3 = BEIGE_ACCENT
 HeaderTitle.Font = Enum.Font.SourceSansBold
 HeaderTitle.TextSize = 15
@@ -331,7 +312,7 @@ CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
     end
 end)
 
--- ==================== 2. TROLL / FLING SEKMESİ ====================
+-- ==================== 2. TROLL / FLING SEKMESİ (AKILLI KOLTUK + ESKİ KONUMA DÖNÜŞ) ====================
 local FlingActive = false
 local OriginalPosition = nil
 
@@ -405,7 +386,7 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ (SUNUCU DESTEKLİ KOPYALAMA) ====================
+-- ==================== 3. AVATAR SEKMESİ (GARANTİ CLONE MOTORU) ====================
 CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
     
@@ -413,7 +394,6 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     local myChar = LocalPlayer.Character
     if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
     
-    -- Brookhaven Avatar Sıfırlama
     pcall(function()
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
@@ -423,7 +403,6 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     
     task.wait(0.2)
     
-    -- HumanoidDescription Çek ve Uygula
     local success, desc = pcall(function()
         return Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
     end)
@@ -435,7 +414,6 @@ CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
         end)
     end
     
-    -- Fiziksel Parçaları ve Katmanları Birebir Klonla
     local targetChar = targetPlr.Character
     if targetChar then
         for _, item in pairs(myChar:GetChildren()) do
