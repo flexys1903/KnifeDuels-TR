@@ -15,7 +15,7 @@ ScreenGui.Name = "UtkuBrookhavenGUI"
 ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Renk Paleti (Gri & Bej)
+-- Renk Paleti (Gri & Bej - Dexter Tarzı Modern Tasarım)
 local BG_COLOR = Color3.fromRGB(40, 40, 40)       -- Koyu Gri
 local HEADER_COLOR = Color3.fromRGB(30, 30, 30)   -- Başlık Grisi
 local BEIGE_ACCENT = Color3.fromRGB(200, 185, 155) -- Bej Vurgu Rengi
@@ -350,7 +350,6 @@ CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
             
             while FlingActive and myChar and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") do
                 local targetHRP = SelectedTarget.Character.HumanoidRootPart
-                -- Kişinin üstüne / boşluğa yapışıp fırlatma simülasyonu
                 myChar.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
                 RunService.Heartbeat:Wait()
             end
