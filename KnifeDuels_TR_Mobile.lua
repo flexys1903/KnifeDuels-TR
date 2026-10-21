@@ -14,7 +14,6 @@ local HttpService = game:GetService("HttpService")
 local StarterGui = game:GetService("StarterGui")
 local Stats = game:GetService("Stats")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -53,11 +52,6 @@ local ConfigFolder = "KnifeDuels"
 local Config = {
     -- Combat
     Aimbot = false,      
-    AutoAttack = false,
-    StabDistance = 30,
-    HitboxExpander = false, 
-    ShowHitboxes = false,
-    HitboxSize = 15,
     ShowFOV = false,
     FOVRadius = 120,
     Smoothing = 0.15,
@@ -78,11 +72,6 @@ local Config = {
     -- SkinChanger
     SelectedKnife = "Glass Karambit",
     SelectedSkin = "Ruby",
-
-    -- Mobile
-    ShowMobileButton = true,
-    MobileAutoAttack = false,
-    MobileAutoJump = false,
 
     -- Player
     Spinbot = false,
@@ -111,12 +100,12 @@ local Theme = {
 }
 
 ---------------------------------------------------------
--- NOTIFICATION & GUI BYPASS (MOBILE OPTIMIZED)
+-- NOTIFICATION & GUI BYPASS (SAFE VERSION)
 ---------------------------------------------------------
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub + Gelişmiş SkinChanger Yüklendi!",
+        Text = "FlexysHub (Güvenli Sürüm) Yüklendi!",
         Duration = 3
     })
 end)
@@ -182,7 +171,7 @@ WMText.Parent = Watermark
 WMText.BackgroundTransparency = 1
 WMText.Size = UDim2.new(1, 0, 1, 0)
 WMText.Font = Enum.Font.GothamMedium
-WMText.Text = " FlexysHub | Knife Duels"
+WMText.Text = " FlexysHub | Knife Duels (Güvenli)"
 WMText.TextColor3 = Theme.TextWhite
 WMText.TextSize = 12
 
@@ -584,11 +573,6 @@ local SettingsTab = CreateTab("Ayarlar", false)
 -- [Combat Options]
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
-CreateToggle(CombatTab, "Otomatik saldırı (Deneysel)", "AutoAttack")
-CreateSlider(CombatTab, "Saplama mesafesi", 5, 50, 30, function(val) Config.StabDistance = val end)
-CreateToggle(CombatTab, "Vuruş alanını genişlet", "HitboxExpander")
-CreateToggle(CombatTab, "Vuruş alanlarını göster", "ShowHitboxes")
-CreateSlider(CombatTab, "Vuruş alanı boyutu", 5, 50, 15, function(val) Config.HitboxSize = val end)
 CreateToggle(CombatTab, "Takım kontrolü", "TeamCheck")
 CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 
@@ -596,13 +580,14 @@ CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 CreateToggle(VisualsTab, "Görüş dairesini göster", "ShowFOV")
 CreateToggle(VisualsTab, "2D kutu ESP", "BoxESP")
 CreateToggle(VisualsTab, "İskelet ESP", "SkeletonESP")
+Cre
 CreateToggle(VisualsTab, "Karakter vurgusu ESP", "ChamsESP")
 CreateToggle(VisualsTab, "İsim ESP", "NameESP")
 CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
 CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
 
--- [Gelişmiş SkinChanger (Glass Karambit ve Tüm Özel Bıçaklar)]
+-- [SkinChanger (Glass Karambit dahil)]
 local knifeList = {
     "Glass Karambit", "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
     "Bayonet", "Flip Knife", "Gut Knife", "Huntsman Knife", 
@@ -623,11 +608,10 @@ local function applySkinChanger()
         local char = LocalPlayer.Character
         local tool = char and char:FindFirstChildOfClass("Tool")
         if tool then
-            tool.Name = Config.SelectedKnife .. " | " + Config.SelectedSkin
+            tool.Name = Config.SelectedKnife .. " | " .. Config.SelectedSkin
             if tool:FindFirstChild("Handle") then
                 for _, child in pairs(tool.Handle:GetChildren()) do
                     if child:IsA("SpecialMesh") or child:IsA("MeshPart") then
-                        -- Glass Karambit veya özel materyal efekti uygulaması
                         if Config.SelectedKnife == "Glass Karambit" then
                             child.Transparency = 0.4
                             child.Color = Color3.fromRGB(200, 230, 255)
@@ -818,7 +802,7 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 ---------------------------------------------------------
--- THE MASTER LOOP: ESP, FOV, & HITBOX ENGINE
+-- THE MASTER LOOP: ESP & FOV ENGINE
 ---------------------------------------------------------
 local function isPartVisible(targetPart, targetCharacter)
     local cam = Workspace.CurrentCamera
@@ -831,9 +815,6 @@ local function isPartVisible(targetPart, targetCharacter)
     local result = Workspace:Raycast(origin, targetPart.Position - origin, raycastParams)
     return (not result) or (result.Instance:IsDescendantOf(targetCharacter))
 end
-
-local originalSizes = {}
-local lastAutoAttackTick = 0
 
 RunService.RenderStepped:Connect(function()
     pcall(function()
@@ -936,25 +917,6 @@ RunService.RenderStepped:Connect(function()
                     local hl = espFolder:FindFirstChild(pName .. "_Chams")
                     if hl then hl.Enabled = false end
                 end
-
-                if Config.HitboxExpander then
-                    if not originalSizes[player.UserId] then originalSizes[player.UserId] = {} end
-                    if not originalSizes[player.UserId]["Head"] then
-                        originalSizes[player.UserId]["Head"] = head.Size
-                    end
-                    
-                    local targetSize = Vector3.new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
-                    if head.Size ~= targetSize then
-                        head.Size = targetSize
-                        head.CanCollide = false
-                        head.Massless = true
-                    end
-                    if Config.ShowHitboxes then
-                        head.Transparency = 0.5
-                    else
-                        head.Transparency = 1 
-                    end
-                end
             else
                 local box = espFolder:FindFirstChild(pName .. "_Box")
                 if box then box.Visible = false end
@@ -968,29 +930,6 @@ RunService.RenderStepped:Connect(function()
         if Config.Aimbot and isAimingKey and closestTarget then
             local newCFrame = CFrame.new(cam.CFrame.Position, closestTarget.Position)
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
-        end
-
-        if Config.AutoAttack and closestTarget and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if tick() - lastAutoAttackTick > 0.15 then
-                lastAutoAttackTick = tick()
-                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - closestTarget.Position).Magnitude
-                if dist <= Config.StabDistance then
-                    local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                    if tool then
-                        pcall(function()
-                            VirtualUser:Button1Down(Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2))
-                            task.wait(0.02)
-                            VirtualUser:Button1Up(Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2))
-                            
-                            if tool:FindFirstChild("Handle") and closestTarget.Parent then
-                                firetouchinterest(tool.Handle, closestTarget, 0)
-                                task.wait(0.01)
-                                firetouchinterest(tool.Handle, closestTarget, 1)
-                            end
-                        end)
-                    end
-                end
-            end
         end
 
         if Config.Spinbot and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
