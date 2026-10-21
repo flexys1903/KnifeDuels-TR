@@ -15,7 +15,7 @@ ScreenGui.Name = "UtkuBrookhavenGUI"
 ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Renk Paleti (Gri & Bej - Dexter Tarzı Modern Tasarım)
+-- Renk Paleti (Gri & Bej - Pro Tasarım)
 local BG_COLOR = Color3.fromRGB(40, 40, 40)       -- Koyu Gri
 local HEADER_COLOR = Color3.fromRGB(30, 30, 30)   -- Başlık Grisi
 local BEIGE_ACCENT = Color3.fromRGB(200, 185, 155) -- Bej Vurgu Rengi
@@ -310,23 +310,21 @@ CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
     end
 end)
 
--- ==================== 2. TROLL / FLING SEKMESİ (AKILLI KOLTUK + ESKİ KONUMA DÖNÜŞ) ====================
+-- ==================== 2. TROLL / FLING SEKMESİ (PRO MOTOR) ====================
 local FlingActive = false
 local OriginalPosition = nil
 
 CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
     if not SelectedTarget or not SelectedTarget.Character then return end
-    
     local myChar = LocalPlayer.Character
     if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
     
     FlingActive = not FlingActive
     
     if FlingActive then
-        -- 1. Orijinal konumumuzu kaydet
         OriginalPosition = myChar.HumanoidRootPart.CFrame
         
-        -- 2. Elinde koltuk yoksa çantadan otomatik kuşan (Couch / Chair / Koltuk)
+        -- VIP Koltuğu Otomatik Kuşanma
         local equippedTool = myChar:FindFirstChildOfClass("Tool")
         if not equippedTool or not (string.find(string.lower(equippedTool.Name), "couch") or string.find(string.lower(equippedTool.Name), "chair") or string.find(string.lower(equippedTool.Name), "koltuk")) then
             local backpack = LocalPlayer:FindFirstChild("Backpack")
@@ -340,7 +338,6 @@ CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
             end
         end
         
-        -- 3. Fling Fiziğini ve Hedef Takibini Başlat
         task.spawn(function()
             local bvo = Instance.new("BodyAngularVelocity")
             bvo.Name = "FlingVelocity"
@@ -359,11 +356,9 @@ CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
             end
         end)
     else
-        -- İkinci kez basıldı: Fling'i durdur ve eski konumuna ışınlan!
         if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
             myChar.HumanoidRootPart.FlingVelocity:Destroy()
         end
-        
         if OriginalPosition then
             task.wait(0.05)
             myChar.HumanoidRootPart.CFrame = OriginalPosition
@@ -390,50 +385,19 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ ====================
+-- ==================== 3. AVATAR SEKMESİ (PRO LOADSTRING / HUB MOTORU) ====================
 CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
     
-    local targetPlr = SelectedTarget
-    local myChar = LocalPlayer.Character
-    if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
-    
+    -- Profesyonel Hub altyapılarının (Dexter tarzı) kullandığı doğrudan veri eşitleme motoru
     pcall(function()
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
-            ReplicatedStorage.RE["1Avatar1Reset1"]:FireServer()
+        local targetUserId = SelectedTarget.UserId
+        local myChar = LocalPlayer.Character
+        if myChar and myChar:FindFirstChildOfClass("Humanoid") then
+            local desc = Players:GetHumanoidDescriptionFromUserId(targetUserId)
+            myChar.Humanoid:ApplyDescriptionReset(desc)
         end
     end)
-    
-    task.wait(0.2)
-    
-    for _, item in pairs(myChar:GetChildren()) do
-        if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
-            item:Destroy()
-        end
-    end
-    
-    task.wait(0.1)
-    
-    local success, desc = pcall(function()
-        return Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
-    end)
-    
-    if success and desc then
-        local myHum = myChar:FindFirstChildOfClass("Humanoid")
-        pcall(function()
-            myHum:ApplyDescriptionReset(desc)
-        end)
-    end
-    
-    if targetPlr.Character then
-        for _, item in pairs(targetPlr.Character:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
-                local clone = item:Clone()
-                clone.Parent = myChar
-            end
-        end
-    end
 end)
 
 CreateButton(AvatarTab, "Üstündeki Her Şeyi Çıkar", function()
