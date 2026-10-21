@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = false,
+    TeamCheck = true, -- Varsayılan olarak takım kontrolü aktif!
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -105,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Güvenli Sürüm) Yüklendi!",
+        Text = "FlexysHub (Takım Kontrollü Aimbot) Yüklendi!",
         Duration = 3
     })
 end)
@@ -142,9 +142,16 @@ local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
+    -- Roblox Takım Kontrolü
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
         if LocalPlayer.Team == player.Team then return true end
     end
+    
+    -- Takım Rengi Kontrolü (Bazı oyunlarda TeamColor kullanılır)
+    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
+        if LocalPlayer.TeamColor == player.TeamColor then return true end
+    end
+
     return false
 end
 
@@ -171,7 +178,7 @@ WMText.Parent = Watermark
 WMText.BackgroundTransparency = 1
 WMText.Size = UDim2.new(1, 0, 1, 0)
 WMText.Font = Enum.Font.GothamMedium
-WMText.Text = " FlexysHub | Knife Duels (Güvenli)"
+WMText.Text = " FlexysHub | Knife Duels"
 WMText.TextColor3 = Theme.TextWhite
 WMText.TextSize = 12
 
@@ -573,7 +580,7 @@ local SettingsTab = CreateTab("Ayarlar", false)
 -- [Combat Options]
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
-CreateToggle(CombatTab, "Takım kontrolü", "TeamCheck")
+CreateToggle(CombatTab, "Takım arkadaşını vurma (TeamCheck)", "TeamCheck")
 CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 
 -- [Visual Options]
@@ -837,7 +844,20 @@ RunService.RenderStepped:Connect(function()
         for _, player in ipairs(Players:GetPlayers()) do
             if player == LocalPlayer then continue end
 
+            -- TAKIM KONTROLÜ (Takım arkadaşıysa tamamen atla)
             local isFriendly = IsTeammate(player)
+            if isFriendly then 
+                -- Takım arkadaşı ise var olan ESP'lerini gizle
+                local pName = tostring(player.UserId)
+                local box = espFolder:FindFirstChild(pName .. "_Box")
+                if box then box.Visible = false end
+                local t = espFolder:FindFirstChild(pName .. "_Tracer")
+                if t then t.Visible = false end
+                local hl = espFolder:FindFirstChild(pName .. "_Chams")
+                if hl then hl.Enabled = false end
+                continue 
+            end
+
             local char = player.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             local head = char and char:FindFirstChild("Head")
@@ -846,7 +866,7 @@ RunService.RenderStepped:Connect(function()
             
             local pName = tostring(player.UserId)
 
-            if isAlive and root and head and not isFriendly then
+            if isAlive and root and head then
                 local rootPos, onScreen = cam:WorldToViewportPoint(root.Position)
 
                 local targetPart = char:FindFirstChild(Config.TargetPart)
@@ -926,6 +946,7 @@ RunService.RenderStepped:Connect(function()
             end
         end
 
+        -- AIMBOT SADECE DÜŞMANLARA KİLİTLENİR
         if Config.Aimbot and isAimingKey and closestTarget then
             local newCFrame = CFrame.new(cam.CFrame.Position, closestTarget.Position)
             cam.CFrame = (Config.Smoothing >= 1.0) and newCFrame or cam.CFrame:Lerp(newCFrame, Config.Smoothing)
@@ -942,4 +963,4 @@ RunService.RenderStepped:Connect(function()
 
         updateCrosshair()
     end)
-    end)
+end)
