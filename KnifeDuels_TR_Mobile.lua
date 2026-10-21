@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = true, -- Yeşil Renk Kontrolü Aktif!
+    TeamCheck = false, -- Çakışmayı önlemek için varsayılan kapalı
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -105,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Yeşil Renk Takım Algılama) Yüklendi!",
+        Text = "FlexysHub (Optimizasyon Sürümü) Yüklendi!",
         Duration = 3
     })
 end)
@@ -136,32 +136,18 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- GREEN COLOR TEAM DETECTOR (YEŞİL RENK KONTROLÜ)
+-- OPTIMIZED TEAM CHECK
 ---------------------------------------------------------
-local function IsGreenColor(color)
-    if not color then return false end
-    return (color.G > 0.4 and color.G > color.R and color.G > color.B)
-end
-
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
-        if LocalPlayer.Team == player.Team then return true end
+        return LocalPlayer.Team == player.Team
     end
-
-    local char = player.Character
-    if char then
-        for _, child in pairs(char:GetDescendants()) do
-            if child:IsA("TextLabel") or child:IsA("TextButton") then
-                if IsGreenColor(child.TextColor3) then return true end
-            elseif child:IsA("Highlight") then
-                if IsGreenColor(child.FillColor) or IsGreenColor(child.OutlineColor) then return true end
-            elseif child:IsA("BasePart") then
-                if IsGreenColor(child.Color) then return true end
-            end
-        end
+    
+    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
+        return LocalPlayer.TeamColor == player.TeamColor
     end
 
     return false
@@ -592,7 +578,7 @@ local SettingsTab = CreateTab("Ayarlar", false)
 -- [Combat Options]
 CreateToggle(CombatTab, "Nişan yardımını aç", "Aimbot")
 CreateSlider(CombatTab, "Nişan takip hızı", 1, 10, 2, function(val) Config.Smoothing = (val == 10) and 1.0 or (0.05 + ((val - 1) * 0.1)) end)
-CreateToggle(CombatTab, "Takım kontrolü (Yeşil Renk)", "TeamCheck")
+CreateToggle(CombatTab, "Takım kontrolü", "TeamCheck")
 CreateToggle(CombatTab, "Duvar kontrolü", "WallCheck")
 
 -- [Visual Options]
@@ -822,7 +808,7 @@ end)
 ---------------------------------------------------------
 -- THE MASTER LOOP: ESP & FOV ENGINE
 ---------------------------------------------------------
-local function isPartVisible(targetPart, targetCharacter)
+local function IsPartVisible(targetPart, targetCharacter)
     local cam = Workspace.CurrentCamera
     if not cam then return false end
     local origin = cam.CFrame.Position
@@ -884,7 +870,7 @@ RunService.RenderStepped:Connect(function()
                     if tOnScreen then
                         local isVis = true
                         if Config.WallCheck then
-                            isVis = isPartVisible(targetPart, char)
+                            isVis = IsPartVisible(targetPart, char)
                         end
                         if isVis then
                             local distance = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
