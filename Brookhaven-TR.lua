@@ -71,7 +71,7 @@ HeaderCorner.Parent = Header
 HeaderTitle.Parent = Header
 HeaderTitle.Size = UDim2.new(1, 0, 1, 0)
 HeaderTitle.BackgroundTransparency = 1
-HeaderTitle.Text = " Brookhaven RP | Utku Mega Hub"
+HeaderTitle.Text = " Brookhaven RP | ig:utku.ss"
 HeaderTitle.TextColor3 = BEIGE_ACCENT
 HeaderTitle.Font = Enum.Font.SourceSansBold
 HeaderTitle.TextSize = 15
@@ -358,43 +358,59 @@ CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
     end
 end)
 
--- ==================== 3. AVATAR SEKMESİ (HARBİ TAM KOPYALAMA: BOY, VÜCUT, SAÇ, HER ŞEY) ====================
+-- ==================== 3. AVATAR SEKMESİ (BROOKHAVEN ÖZEL %100 KOPYALAMA) ====================
 CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
     if not SelectedTarget then return end
-    local myChar = LocalPlayer.Character
     
-    if myChar and myChar:FindFirstChildOfClass("Humanoid") then
+    local targetPlr = SelectedTarget
+    local myChar = LocalPlayer.Character
+    if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
+    
+    -- 1. ADIM: Brookhaven'ın kendi Avatar Temizleme / Sıfırlama Event'ini Çağır
+    pcall(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
+            ReplicatedStorage.RE["1Avatar1Reset1"]:FireServer()
+        end
+    end)
+    
+    task.wait(0.2)
+    
+    -- 2. ADIM: Üstündeki kalan tüm lokal objeleri sök
+    for _, item in pairs(myChar:GetChildren()) do
+        if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
+            item:Destroy()
+        end
+    end
+    
+    task.wait(0.1)
+    
+    -- 3. ADIM: Hedef Oyuncunun Tüm Avatar Verilerini (HumanoidDescription) İndir
+    local success, desc = pcall(function()
+        return Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
+    end)
+    
+    if success and desc then
         local myHum = myChar:FindFirstChildOfClass("Humanoid")
         
-        -- 1. ADIM: Üstündeki tüm kıyafetleri, aksesuarları, vücut renklerini ve meshleri kökten kazı
-        for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("CharacterMesh") or item:IsA("WrapLayer") then
-                item:Destroy()
-            end
-        end
+        -- Vücut Boyutları ve Oranlarını İşle (Boy, En, Kafa)
+        if myHum:FindFirstChild("BodyDepthScale") then myHum.BodyDepthScale.Value = desc.BodyDepthScale end
+        if myHum:FindFirstChild("BodyHeightScale") then myHum.BodyHeightScale.Value = desc.BodyHeightScale end
+        if myHum:FindFirstChild("BodyWidthScale") then myHum.BodyWidthScale.Value = desc.BodyWidthScale end
+        if myHum:FindFirstChild("HeadScale") then myHum.HeadScale.Value = desc.HeadScale end
         
-        task.wait(0.05)
-        
-        -- 2. ADIM: Hedef oyuncunun resmi HumanoidDescription (Boy, Orantı, Vücut Şekli, Saç, Yüz dahil) verisini çek
-        local success, desc = pcall(function()
-            return Players:GetHumanoidDescriptionFromUserId(SelectedTarget.UserId)
+        -- Humanoid Description Tam Uygulama
+        pcall(function()
+            myHum:ApplyDescription(desc)
         end)
-        
-        if success and desc and myHum then
-            pcall(function()
-                -- Boy (Height), Genişlik (Width), Derinlik (Depth), Kafa boyutu (Head) ve Vücut oranlarını tam kopyalar
-                myHum:ApplyDescription(desc)
-            end)
-        end
-        
-        -- 3. ADIM: Hedef karakterin üzerindeki tüm fiziksel parçaları ve katmanlı kıyafetleri birebir klonla
-        local targetChar = SelectedTarget.Character
-        if targetChar then
-            for _, item in pairs(targetChar:GetChildren()) do
-                if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
-                    local clone = item:Clone()
-                    clone.Parent = myChar
-                end
+    end
+    
+    -- 4. ADIM: Fiziksel Parçaları ve Katmanlı Kıyafetleri Birebir Klonla
+    if targetPlr.Character then
+        for _, item in pairs(targetPlr.Character:GetChildren()) do
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") then
+                local clone = item:Clone()
+                clone.Parent = myChar
             end
         end
     end
