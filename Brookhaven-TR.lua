@@ -2,8 +2,8 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 
 -- Var olan UI varsa temizle
 if game:GetService("CoreGui"):FindFirstChild("UtkuBrookhavenGUI") then
@@ -69,7 +69,6 @@ local HeaderCorner = Instance.new("UICorner")
 HeaderCorner.CornerRadius = UDim.new(0, 10)
 HeaderCorner.Parent = Header
 
--- ASLA DEĞİŞMEZ KİMLİK: Sadece senin adın yazar!
 HeaderTitle.Parent = Header
 HeaderTitle.Size = UDim2.new(1, 0, 1, 0)
 HeaderTitle.BackgroundTransparency = 1
@@ -146,12 +145,10 @@ end
 
 -- SEKMELERİ OLUŞTUR
 local TargetTab = CreateTab("Oyuncu Seç")
-local PlayerTab = CreateTab("Player")
-local TrollTab = CreateTab("Troll / Fling")
-local AvatarTab = CreateTab("Avatar")
-local VisualsTab = CreateTab("Visuals")
-local HouseTab = CreateTab("Ev / Ban")
+local ToolsTab = CreateTab("İşlemler")
 local TPTab = CreateTab("Işınlanma")
+local HouseTab = CreateTab("Ev / Ban")
+local AboutTab = CreateTab("Hakkımda")
 
 local function CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
@@ -218,6 +215,7 @@ local function RefreshPlayerList()
             
             pBtn.MouseButton1Click:Connect(function()
                 SelectedTarget = plr
+                SelectedLabel.Text = "Seçilen: " + plr.Name -- Fix below
                 SelectedLabel.Text = "Seçilen: " .. plr.Name
             end)
         end
@@ -227,277 +225,51 @@ end
 CreateButton(TargetTab, "Oyuncu Listesini Yenile", RefreshPlayerList)
 RefreshPlayerList()
 
--- ==================== 1. PLAYER SEKMESİ ====================
-CreateButton(PlayerTab, "Hızlandır (Speed: 50)", function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 50
-    end
-end)
+-- ==================== 1. İŞLEMLER SEKMESİ (VIEW & TP) ====================
+local Viewing = false
 
-CreateButton(PlayerTab, "Süper Hız (Speed: 120)", function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 120
-    end
-end)
-
-CreateButton(PlayerTab, "Normal Hız (Speed: 16)", function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
-    end
-end)
-
-CreateButton(PlayerTab, "Yüksek Zıplama", function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = 120
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
-    end
-end)
-
-CreateButton(PlayerTab, "Inf Jump (Sınırsız Zıplama)", function()
-    UserInputService.JumpRequest:Connect(function()
+CreateButton(ToolsTab, "Seçilen Oyuncuyu İzle (View)", function()
+    Viewing = not Viewing
+    local cam = workspace.CurrentCamera
+    
+    if Viewing then
+        if SelectedTarget and SelectedTarget.Character and SelectedTarget.Character:FindFirstChildOfClass("Humanoid") then
+            cam.CameraSubject = SelectedTarget.Character:FindFirstChildOfClass("Humanoid")
+        end
+    else
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-            LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+            cam.CameraSubject = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        end
+    end
+end)
+
+CreateButton(ToolsTab, "Seçilen Oyuncuya Işınlan", function()
+    if SelectedTarget and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = SelectedTarget.Character.HumanoidRootPart.CFrame
+        end
+    end
+end)
+
+-- ==================== 2. IŞINLANMA (TELEPORT) SEKMESİ ====================
+local Locations = {
+    ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
+    ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
+    ["Hastane"] = Vector3.new(-220, 18, 50),
+    ["Banka"] = Vector3.new(-30, 18, -100),
+    ["Okul"] = Vector3.new(-330, 18, 200),
+    ["Kasa / Gizli Oda"] = Vector3.new(-50, 20, -110)
+}
+
+for name, pos in pairs(Locations) do
+    CreateButton(TPTab, name + "'a Işınlan", function() -- syntax fix
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
         end
     end)
-end)
+end
 
-local NoclipActive = false
-CreateButton(PlayerTab, "Noclip Aç/Kapat (Duvar Geçiş)", function()
-    NoclipActive = not NoclipActive
-    RunService.Stepped:Connect(function()
-        if NoclipActive and LocalPlayer.Character then
-            for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end)
-end)
-
-local Flying = false
-CreateButton(PlayerTab, "Uçma Modu (Fly) Aç/Kapat", function()
-    Flying = not Flying
-    local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    
-    if Flying then
-        local bv = Instance.new("BodyVelocity")
-        bv.Name = "UtkuFly"
-        bv.MaxForce = Vector3.new(0, 0, 0)
-        bv.Velocity = Vector3.new(0,0,0)
-        bv.Parent = char.HumanoidRootPart
-        
-        local bg = Instance.new("BodyGyro")
-        bg.Name = "UtkuGyro"
-        bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-        bg.P = 9e4
-        bg.CFrame = char.HumanoidRootPart.CFrame
-        bg.Parent = char.HumanoidRootPart
-        
-        task.spawn(function()
-            while Flying do
-                task.wait()
-                local cam = workspace.CurrentCamera
-                bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-                bv.Velocity = cam.CFrame.LookVector * 60
-                bg.CFrame = cam.CFrame
-            end
-            if char.HumanoidRootPart:FindFirstChild("UtkuFly") then char.HumanoidRootPart.UtkuFly:Destroy() end
-            if char.HumanoidRootPart:FindFirstChild("UtkuGyro") then char.HumanoidRootPart.UtkuGyro:Destroy() end
-        end)
-    else
-        if char.HumanoidRootPart:FindFirstChild("UtkuFly") then char.HumanoidRootPart.UtkuFly:Destroy() end
-        if char.HumanoidRootPart:FindFirstChild("UtkuGyro") then char.HumanoidRootPart.UtkuGyro:Destroy() end
-    end
-end)
-
--- ==================== 2. TROLL / FLING SEKMESİ (AKILLI KOLTUK + ESKİ KONUMA DÖNÜŞ) ====================
-local FlingActive = false
-local OriginalPosition = nil
-
-CreateButton(TrollTab, "Fling Başlat / Geri Dön", function()
-    if not SelectedTarget or not SelectedTarget.Character then return end
-    local myChar = LocalPlayer.Character
-    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
-    
-    FlingActive = not FlingActive
-    
-    if FlingActive then
-        OriginalPosition = myChar.HumanoidRootPart.CFrame
-        
-        local equippedTool = myChar:FindFirstChildOfClass("Tool")
-        if not equippedTool or not (string.find(string.lower(equippedTool.Name), "couch") or string.find(string.lower(equippedTool.Name), "chair") or string.find(string.lower(equippedTool.Name), "koltuk")) then
-            local backpack = LocalPlayer:FindFirstChild("Backpack")
-            if backpack then
-                for _, item in pairs(backpack:GetChildren()) do
-                    if item:IsA("Tool") and (string.find(string.lower(item.Name), "couch") or string.find(string.lower(item.Name), "chair") or string.find(string.lower(item.Name), "koltuk")) then
-                        item.Parent = myChar
-                        break
-                    end
-                end
-            end
-        end
-        
-        task.spawn(function()
-            local bvo = Instance.new("BodyAngularVelocity")
-            bvo.Name = "FlingVelocity"
-            bvo.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-            bvo.AngularVelocity = Vector3.new(0, 999999, 0)
-            bvo.Parent = myChar.HumanoidRootPart
-            
-            while FlingActive and myChar and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") do
-                local targetHRP = SelectedTarget.Character.HumanoidRootPart
-                myChar.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 0)
-                RunService.Heartbeat:Wait()
-            end
-            
-            if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
-                myChar.HumanoidRootPart.FlingVelocity:Destroy()
-            end
-        end)
-    else
-        if myChar.HumanoidRootPart:FindFirstChild("FlingVelocity") then
-            myChar.HumanoidRootPart.FlingVelocity:Destroy()
-        end
-        if OriginalPosition then
-            task.wait(0.05)
-            myChar.HumanoidRootPart.CFrame = OriginalPosition
-        end
-    end
-end)
-
-local Spinning = false
-CreateButton(TrollTab, "Spin Bot (Karakteri Döndür)", function()
-    Spinning = not Spinning
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        if Spinning then
-            local spin = Instance.new("BodyAngularVelocity")
-            spin.Name = "UtkuSpin"
-            spin.MaxTorque = Vector3.new(0, math.huge, 0)
-            spin.AngularVelocity = Vector3.new(0, 50, 0)
-            spin.Parent = char.HumanoidRootPart
-        else
-            if char.HumanoidRootPart:FindFirstChild("UtkuSpin") then
-                char.HumanoidRootPart.UtkuSpin:Destroy()
-            end
-        end
-    end
-end)
-
--- ==================== 3. AVATAR SEKMESİ (GARANTİ CLONE MOTORU) ====================
-CreateButton(AvatarTab, "Seçilenin Boyunu & Her Şeyini Kopyala", function()
-    if not SelectedTarget then return end
-    
-    local targetPlr = SelectedTarget
-    local myChar = LocalPlayer.Character
-    if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
-    
-    pcall(function()
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
-            ReplicatedStorage.RE["1Avatar1Reset1"]:FireServer()
-        end
-    end)
-    
-    task.wait(0.2)
-    
-    local success, desc = pcall(function()
-        return Players:GetHumanoidDescriptionFromUserId(targetPlr.UserId)
-    end)
-    
-    if success and desc then
-        local myHum = myChar:FindFirstChildOfClass("Humanoid")
-        pcall(function()
-            myHum:ApplyDescriptionReset(desc)
-        end)
-    end
-    
-    local targetChar = targetPlr.Character
-    if targetChar then
-        for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
-                item:Destroy()
-            end
-        end
-        
-        task.wait(0.05)
-        
-        for _, item in pairs(targetChar:GetChildren()) do
-            if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
-                local clone = item:Clone()
-                clone.Parent = myChar
-            end
-        end
-    end
-end)
-
-CreateButton(AvatarTab, "Üstündeki Her Şeyi Çıkar", function()
-    local myChar = LocalPlayer.Character
-    if myChar then
-        for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") or item:IsA("WrapLayer") or item:IsA("CharacterMesh") then
-                item:Destroy()
-            end
-        end
-    end
-end)
-
--- ==================== 4. VISUALS (ESP) SEKMESİ ====================
-local ESPEnabled = false
-local ESPObjects = {}
-
-CreateButton(VisualsTab, "Oyuncu ESP Aç/Kapat", function()
-    ESPEnabled = not ESPEnabled
-    
-    if not ESPEnabled then
-        for _, v in pairs(ESPObjects) do v:Destroy() end
-        ESPObjects = {}
-    else
-        task.spawn(function()
-            while ESPEnabled do
-                for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-                        local head = plr.Character.Head
-                        local myChar = LocalPlayer.Character
-                        
-                        if myChar and myChar:FindFirstChild("HumanoidRootPart") then
-                            local dist = math.floor((myChar.HumanoidRootPart.Position - head.Position).Magnitude)
-                            local billboard = head:FindFirstChild("UtkuESP")
-                            
-                            if not billboard then
-                                billboard = Instance.new("BillboardGui")
-                                billboard.Name = "UtkuESP"
-                                billboard.AlwaysOnTop = true
-                                billboard.Size = UDim2.new(0, 120, 0, 30)
-                                billboard.StudsOffset = Vector3.new(0, 2, 0)
-                                billboard.Parent = head
-                                table.insert(ESPObjects, billboard)
-
-                                local textLabel = Instance.new("TextLabel")
-                                textLabel.Name = "ESPLabel"
-                                textLabel.Size = UDim2.new(1, 0, 1, 0)
-                                textLabel.BackgroundTransparency = 1
-                                textLabel.TextColor3 = BEIGE_ACCENT
-                                textLabel.TextSize = 13
-                                textLabel.Font = Enum.Font.SourceSansBold
-                                textLabel.Parent = billboard
-                            end
-                            
-                            if billboard:FindFirstChild("ESPLabel") then
-                                billboard.ESPLabel.Text = plr.Name .. " [" .. tostring(dist) .. "m]"
-                            end
-                        end
-                    end
-                end
-                task.wait(0.5)
-            end
-        end)
-    end
-end)
-
--- ==================== 5. EV BAN KALDIRMA SEKMESİ ====================
+-- ==================== 3. EV BAN KALDIRMA SEKMESİ ====================
 CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj.Name == "BanBlock" or obj.Name == "BanBariyer" or obj.Name == "HouseBan" or (obj:IsA("BasePart") and string.find(string.lower(obj.Name), "ban")) then
@@ -514,31 +286,78 @@ CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     end
 end)
 
--- ==================== 6. IŞINLANMA (TELEPORT) SEKMESİ ====================
-CreateButton(TPTab, "Seçilen Oyuncuya Işınlan", function()
-    if SelectedTarget and SelectedTarget.Character and SelectedTarget.Character:FindFirstChild("HumanoidRootPart") then
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = SelectedTarget.Character.HumanoidRootPart.CFrame
-        end
+-- ==================== 4. HAKKIMDA SEKMESİ ====================
+local AboutLabel = Instance.new("TextLabel")
+AboutLabel.Parent = AboutTab
+AboutLabel.Size = UDim2.new(1, -5, 0, 30)
+AboutLabel.BackgroundTransparency = 1
+AboutLabel.Text = "Roblox: AMATOR_TURK"
+AboutLabel.TextColor3 = BEIGE_ACCENT
+AboutLabel.Font = Enum.Font.SourceSansBold
+AboutLabel.TextSize = 15
+
+-- Boydan Avatar Görüntüsü (Thumbnail API)
+local AvatarImage = Instance.new("ImageLabel")
+AvatarImage.Parent = AboutTab
+AvatarImage.Size = UDim2.new(0, 140, 0, 140)
+AvatarImage.Position = UDim2.new(0.5, -70, 0, 35)
+AvatarImage.BackgroundTransparency = 1
+
+-- AMATOR_TURK kullanıcısının ID'sini çekip boydan (FullBody) resmini koyma
+task.spawn(function()
+    local ok, userId = pcall(function()
+        return Players:GetUserIdFromNameAsync("AMATOR_TURK")
+    end)
+    if ok and userId then
+        local thumbOk, thumbUrl = pcall(function()
+            return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.和?.ThumbnailSize, Enum.ThumbnailSize.Size420x420)
+        end)
+        -- Fallback olarak standard headshot/fullbody endpoint
+        AvatarImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+        
+        -- Tam boy görünüm için API URL denemesi
+        pcall(function()
+            local url = "https://thumbnails.roblox.com/v1/users/avatar?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false"
+            local response = HttpService:JSONDecode(game:HttpGet(url))
+            if response and response.data and response.data[1] then
+                AvatarImage.Image = response.data[1].imageUrl
+            end
+        end)
     end
 end)
 
-local Locations = {
-    ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
-    ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
-    ["Hastane"] = Vector3.new(-220, 18, 50),
-    ["Banka"] = Vector3.new(-30, 18, -100),
-    ["Okul"] = Vector3.new(-330, 18, 200),
-    ["Kasa / Gizli Oda"] = Vector3.new(-50, 20, -110)
-}
+-- Instagram Butonu (utku.ss)
+local IGButton = Instance.new("TextButton")
+IGButton.Parent = AboutTab
+IGButton.Size = UDim2.new(1, -5, 0, 35)
+IGButton.Position = UDim2.new(0, 0, 0, 185)
+IGButton.BackgroundColor3 = BTN_COLOR
+IGButton.Text = "Instagram: utku.ss (Tıkla)"
+IGButton.TextColor3 = BEIGE_ACCENT
+IGButton.Font = Enum.Font.SourceSansBold
+IGButton.TextSize = 14
 
-for name, pos in pairs(Locations) do
-    CreateButton(TPTab, name .. "'a Işınlan", function()
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
+local IGCorners = Instance.new("UICorner")
+IGCorners.CornerRadius = UDim.new(0, 6)
+IGCorners.Parent = IGButton
+
+IGButton.MouseButton1Click:Connect(function()
+    pcall(function()
+        if setclipboard then
+            setclipboard("https://instagram.com/utku.ss")
+        end
+        if syn and syn.request then
+            syn.request({
+                Url = "http://127.0.0.1:6463/rpc?v=1",
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json", ["Origin"] = "https://discord.com"},
+                Body = HttpService:JSONEncode({cmd = "BROWSER_OPEN", args = {href = "https://instagram.com/utku.ss"}, nonce = HttpService:GenerateGUID(false)})
+            })
+        elseif request then
+            request({Url = "https://instagram.com/utku.ss", Method = "GET"})
         end
     end)
-end
+end)
 
 -- PC için F tuşu ile gizleme
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
