@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Var olan UI varsa temizle
-if game:GetService("CoreGui"):FindFirstChild("1903gui") then
+if game:GetService("CoreGui"):FindFirstChild("UtkuBrookhavenGUI") then
     game:GetService("CoreGui").UtkuBrookhavenGUI:Destroy()
 end
 
@@ -53,7 +53,7 @@ MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.3, 0, 0.2, 0)
 MainFrame.Size = UDim2.new(0, 360, 0, 270)
 MainFrame.Active = true
-MainFrame.Draggable = true -- Mobil ve PC'de üstten/her yerden tutulup sürüklenebilir!
+MainFrame.Draggable = true
 
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
@@ -76,12 +76,12 @@ HeaderTitle.Font = Enum.Font.SourceSansBold
 HeaderTitle.TextSize = 16
 HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- Menü Açma/Kapatma Mantığı
+-- Menü Açma/Kapatma
 ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
--- 3. SEKMELER (TABS) SİSTEMİ
+-- 3. SEKMELER SİSTEMİ
 local TabBar = Instance.new("Frame")
 TabBar.Parent = MainFrame
 TabBar.BackgroundColor3 = HEADER_COLOR
@@ -95,7 +95,6 @@ ContentArea.Position = UDim2.new(0, 105, 0, 45)
 ContentArea.Size = UDim2.new(1, -110, 1, -50)
 
 local Tabs = {}
-local CurrentTab = nil
 
 local function CreateTab(name)
     local TabBtn = Instance.new("TextButton")
@@ -143,13 +142,12 @@ local function CreateTab(name)
     return Container
 end
 
--- ==================== SEKMELER ====================
+-- SEKMELERİ OLUŞTUR
 local PlayerTab = CreateTab("Player")
 local AvatarTab = CreateTab("Avatar")
 local VisualsTab = CreateTab("Visuals")
 local HouseTab = CreateTab("Ev / Ban")
 
--- Yardımcı Eleman Oluşturucular
 local function CreateButton(parent, text, callback)
     local btn = Instance.new("TextButton")
     btn.Parent = parent
@@ -196,18 +194,8 @@ CreateButton(PlayerTab, "Inf Jump (Sınırsız Zıplama)", function()
     end)
 end)
 
--- ==================== 2. AVATAR SEKMESİ (GARANTİLİ KOPYALAMA) ====================
+-- ==================== 2. AVATAR SEKMESİ (TEMİZLEYİP KOPYALAMA) ====================
 local SelectedPlayer = nil
-
-local function GetPlayerNames()
-    local names = {}
-    for _, v in pairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer then
-            table.insert(names, v.Name)
-        end
-    end
-    return names
-end
 
 CreateButton(AvatarTab, "En Yakındaki Oyuncuyu Seç", function()
     local myChar = LocalPlayer.Character
@@ -232,24 +220,39 @@ CreateButton(AvatarTab, "En Yakındaki Oyuncuyu Seç", function()
     end
 end)
 
+-- ÖNCE ÜSTÜNDEKİLERİ TEMİZLE, SONRA KOPYALA
 CreateButton(AvatarTab, "Seçilinin Avatarını Kopyala", function()
     if not SelectedPlayer or not SelectedPlayer.Character then return end
     local myChar = LocalPlayer.Character
     local targetChar = SelectedPlayer.Character
     
     if myChar and targetChar then
-        -- Eski kıyafetleri ve aksesuarları temizle
+        -- 1. Aşama: Karakterinin üzerindeki TÜM aksesuar ve kıyafetleri sök
         for _, item in pairs(myChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") then
                 item:Destroy()
             end
         end
         
-        -- Hedef oyuncunun kıyafet ve aksesuarlarını klonlayıp giy
+        -- Bekleme ekleyerek kıyafetlerin tamamen kaldırıldığından emin olalım
+        task.wait(0.1)
+        
+        -- 2. Aşama: Hedef oyuncunun kıyafet ve aksesuarlarını klonlayıp giydir
         for _, item in pairs(targetChar:GetChildren()) do
-            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") or item:IsA("BodyColors") then
                 local clone = item:Clone()
                 clone.Parent = myChar
+            end
+        end
+    end
+end)
+
+CreateButton(AvatarTab, "Üstündeki Her Şeyi Çıkar", function()
+    local myChar = LocalPlayer.Character
+    if myChar then
+        for _, item in pairs(myChar:GetChildren()) do
+            if item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") or item:IsA("Accessory") then
+                item:Destroy()
             end
         end
     end
