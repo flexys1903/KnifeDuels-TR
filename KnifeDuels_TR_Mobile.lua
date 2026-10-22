@@ -101,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Stabil Sürüm) Yüklendi!",
+        Text = "FlexysHub (Optimize Sürüm) Yüklendi!",
         Duration = 3
     })
 end)
@@ -132,7 +132,7 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- SAFE TEAM CHECK (KASMAYAN VE BOZMAYAN YAPI)
+-- STABLE TEAM CHECK
 ---------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
@@ -773,6 +773,12 @@ RunService.RenderStepped:Connect(function()
         for _, player in ipairs(Players:GetPlayers()) do
             if player == LocalPlayer then continue end
 
+            local char = player.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            local head = char and char:FindFirstChild("Head")
+            local hum = char and char:FindFirstChild("Humanoid")
+            local isAlive = hum and hum.Health > 0
+
             local pName = tostring(player.UserId)
             local isFriendly = IsTeammate(player)
 
@@ -785,12 +791,6 @@ RunService.RenderStepped:Connect(function()
                 if hl then hl.Enabled = false end
                 continue
             end
-
-            local char = player.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            local head = char and char:FindFirstChild("Head")
-            local hum = char and char:FindFirstChild("Humanoid")
-            local isAlive = hum and hum.Health > 0
 
             if isAlive and root and head then
                 local rootPos, onScreen = cam:WorldToViewportPoint(root.Position)
