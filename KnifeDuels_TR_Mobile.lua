@@ -101,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Kesin Takım Koruması) Yüklendi!",
+        Text = "FlexysHub (ig:utku.ss) Yüklendi!",
         Duration = 3
     })
 end)
