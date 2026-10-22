@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = false,
+    TeamCheck = true,
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -101,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (ig:utku.ss) İyi Oyunlar :D!",
+        Text = "FlexysHub (Kesin Takım Koruması) Yüklendi!",
         Duration = 3
     })
 end)
@@ -132,15 +132,37 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- SAFE TEAM CHECK (ESP BOZMAYAN YAPI)
+-- ABSOLUTE TEAMMATE DETECTOR (YEŞİL & TAKIM KONTROLÜ)
 ---------------------------------------------------------
+local function IsGreenColor(color)
+    if not color then return false end
+    return (color.G > 0.4 and color.G > color.R and color.G > color.B)
+end
+
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    -- Knife duellerinde herkes rakip olduğu için gereksiz takipleşmeyi engelle
+    -- 1. Roblox Team Kontrolü
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
-        return LocalPlayer.Team == player.Team
+        if LocalPlayer.Team == player.Team then return true end
+    end
+    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
+        if LocalPlayer.TeamColor == player.TeamColor then return true end
+    end
+
+    -- 2. Karakter Üzerindeki Yeşil Renk / Highlight / UI Taraması (Takım Arkadaşı Tespiti)
+    local char = player.Character
+    if char then
+        for _, obj in ipairs(char:GetDescendants()) do
+            if obj:IsA("Highlight") then
+                if IsGreenColor(obj.FillColor) or IsGreenColor(obj.OutlineColor) then return true end
+            elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                if IsGreenColor(obj.TextColor3) then return true end
+            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
+                if IsGreenColor(obj.Color) then return true end
+            end
+        end
     end
 
     return false
@@ -336,7 +358,7 @@ local ActiveTabLine = Instance.new("Frame")
 ActiveTabLine.Parent = TabSeparator
 ActiveTabLine.BackgroundColor3 = Theme.Accent
 ActiveTabLine.BorderSizePixel = 0
-ActiveTabLine.Size = UDim2.new(0.2, -6, 1, 0)
+ActiveTabLine.Size = UDim2.new(0.25, -5, 1, 0)
 ActiveTabLine.Position = UDim2.new(0, 0, 0, 0)
 
 local Pages = Instance.new("Frame")
@@ -560,7 +582,7 @@ local function CreateSlider(parent, text, min, max, defaultVal, callback)
 end
 
 ---------------------------------------------------------
--- POPULATE TABBED UI (4 TAB)
+-- POPULATE TABBED UI
 ---------------------------------------------------------
 local CombatTab = CreateTab("Savaş", true)
 local VisualsTab = CreateTab("Görünüm", false)
@@ -611,9 +633,10 @@ MenuToggleStroke.Thickness = 2
 MenuToggleStroke.Parent = MenuToggleFrame
 
 local MenuToggleButton = Instance.new("TextButton")
-MenuToggleButton.Parent = MenuToggleFrame
+MenuToggleButton.Parent = ScreenGui
 MenuToggleButton.BackgroundTransparency = 1
-MenuToggleButton.Size = UDim2.new(1, 0, 1, 0)
+MenuToggleButton.Size = UDim2.new(0, 42, 0, 42)
+MenuToggleButton.Position = UDim2.new(0, 15, 0.5, -20)
 MenuToggleButton.Font = Enum.Font.GothamBold
 MenuToggleButton.Text = "FX"
 MenuToggleButton.TextColor3 = Theme.Accent
@@ -634,6 +657,7 @@ UserInputService.InputChanged:Connect(function(input)
         if delta.Magnitude > 5 then
             hasMovedMenuToggle = true
             MenuToggleFrame.Position = UDim2.new(startPosMenuToggle.X.Scale, startPosMenuToggle.X.Offset + delta.X, startPosMenuToggle.Y.Scale, startPosMenuToggle.Y.Offset + delta.Y)
+            MenuToggleButton.Position = MenuToggleFrame.Position
         end
     end
 end)
@@ -782,7 +806,7 @@ RunService.RenderStepped:Connect(function()
                 if t then t.Visible = false end
                 local hl = espFolder:FindFirstChild(pName .. "_Chams")
                 if hl then hl.Enabled = false end
-                continue
+                continue -- Takım arkadaşıysa bu oyuncuyu tamamen atla (Aimbot ve ESP uygulanmaz)
             end
 
             local char = player.Character
