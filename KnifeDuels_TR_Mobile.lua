@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = false,
+    TeamCheck = false, -- Çakışmayı önlemek için varsayılan kapalı
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -68,6 +68,10 @@ local Config = {
     Tracers = false,
     Crosshair = false,
     CrosshairSize = 10,
+    
+    -- SkinChanger
+    SelectedKnife = "Glass Karambit",
+    SelectedSkin = "Ruby",
 
     -- Player
     Spinbot = false,
@@ -101,7 +105,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Tam Takım Düzeltmesi) Yüklendi!",
+        Text = "FlexysHub (Optimizasyon Sürümü) Yüklendi!",
         Duration = 3
     })
 end)
@@ -132,34 +136,18 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- ADVANCED GAME-SPECIFIC TEAM CHECK
+-- OPTIMIZED TEAM CHECK
 ---------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    -- 1. Standart Roblox Takım Kontrolü (nil olmama şartı eklendi)
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
         return LocalPlayer.Team == player.Team
     end
-
-    -- 2. Knife Duels Özel Değer Kontrolü (Player ve Character altındaki Value'lar)
-    local myChar = LocalPlayer.Character
-    local targetChar = player.Character
-
-    local myTeamVal = LocalPlayer:FindFirstChild("TeamValue") or LocalPlayer:FindFirstChild("Team") or (myChar and (myChar:FindFirstChild("TeamValue") or myChar:FindFirstChild("Team")))
-    local targetTeamVal = player:FindFirstChild("TeamValue") or player:FindFirstChild("Team") or (targetChar and (targetChar:FindFirstChild("TeamValue") or targetChar:FindFirstChild("Team")))
-
-    if myTeamVal and targetTeamVal and myTeamVal.Value ~= nil and targetTeamVal.Value ~= nil then
-        return myTeamVal.Value == targetTeamVal.Value
-    end
-
-    -- 3. Oyuncu isimlerinin yeşil/dost etiketi kontrolü (Knife Duels 2v2 Modları için)
-    if targetChar then
-        local friendTag = targetChar:FindFirstChild("IsTeammate") or targetChar:FindFirstChild("Friendly")
-        if friendTag and friendTag.Value == true then
-            return true
-        end
+    
+    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
+        return LocalPlayer.TeamColor == player.TeamColor
     end
 
     return false
@@ -355,7 +343,7 @@ local ActiveTabLine = Instance.new("Frame")
 ActiveTabLine.Parent = TabSeparator
 ActiveTabLine.BackgroundColor3 = Theme.Accent
 ActiveTabLine.BorderSizePixel = 0
-ActiveTabLine.Size = UDim2.new(0.25, -5, 1, 0)
+ActiveTabLine.Size = UDim2.new(0.2, -6, 1, 0)
 ActiveTabLine.Position = UDim2.new(0, 0, 0, 0)
 
 local Pages = Instance.new("Frame")
@@ -373,7 +361,7 @@ local function CreateTab(name, isFirst)
     local btnFrame = Instance.new("Frame")
     btnFrame.Parent = TabBar
     btnFrame.BackgroundTransparency = 1
-    btnFrame.Size = UDim2.new(0.25, -5, 1, 0)
+    btnFrame.Size = UDim2.new(0.2, -6, 1, 0)
 
     local btn = Instance.new("TextButton")
     btn.Parent = btnFrame
@@ -583,6 +571,7 @@ end
 ---------------------------------------------------------
 local CombatTab = CreateTab("Savaş", true)
 local VisualsTab = CreateTab("Görünüm", false)
+local SkinsTab = CreateTab("Skinler", false)
 local PlayerTab = CreateTab("Oyuncu", false)
 local SettingsTab = CreateTab("Ayarlar", false)
 
@@ -601,6 +590,68 @@ CreateToggle(VisualsTab, "İsim ESP", "NameESP")
 CreateToggle(VisualsTab, "İz çizgileri ESP", "Tracers")
 CreateToggle(VisualsTab, "Özel nişangâh", "Crosshair")
 CreateSlider(VisualsTab, "Nişangâh boyutu", 4, 30, 10, function(val) Config.CrosshairSize = val end)
+
+-- [SkinChanger (Glass Karambit dahil)]
+local knifeList = {
+    "Glass Karambit", "Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", 
+    "Bayonet", "Flip Knife", "Gut Knife", "Huntsman Knife", 
+    "Falchion Knife", "Bowie Knife", "Shadow Daggers", "Navaja Knife", 
+    "Stiletto Knife", "Ursus Knife", "Classic Knife", "Paracord Knife", 
+    "Survival Knife", "Nomad Knife", "Skeleton Knife"
+}
+
+local skinList = {
+    "Ruby", "Sapphire", "Emerald", "Black Pearl", 
+    "Fade (100%)", "Case Hardened (Blue Gem)", "Lore", "Tiger Tooth", 
+    "Doppler", "Gamma Doppler", "Damascus Steel", "Autotronic", 
+    "Slaughter", "Freehand", "Boreal Forest", "Safari Mesh"
+}
+
+local function applySkinChanger()
+    pcall(function()
+        local char = LocalPlayer.Character
+        local tool = char and char:FindFirstChildOfClass("Tool")
+        if tool then
+            tool.Name = Config.SelectedKnife .. " | " .. Config.SelectedSkin
+            if tool:FindFirstChild("Handle") then
+                for _, child in pairs(tool.Handle:GetChildren()) do
+                    if child:IsA("SpecialMesh") or child:IsA("MeshPart") then
+                        if Config.SelectedKnife == "Glass Karambit" then
+                            child.Transparency = 0.4
+                            child.Color = Color3.fromRGB(200, 230, 255)
+                        else
+                            child.Transparency = 0
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+for _, knifeName in ipairs(knifeList) do
+    CreateButton(SkinsTab, "Bıçak: " .. knifeName, function()
+        Config.SelectedKnife = knifeName
+        applySkinChanger()
+        StarterGui:SetCore("SendNotification", {
+            Title = "SkinChanger",
+            Text = knifeName .. " aktif edildi!",
+            Duration = 2
+        })
+    end)
+end
+
+for _, skinName in ipairs(skinList) do
+    CreateButton(SkinsTab, "Kaplama: " .. skinName, function()
+        Config.SelectedSkin = skinName
+        applySkinChanger()
+        StarterGui:SetCore("SendNotification", {
+            Title = "SkinChanger",
+            Text = skinName .. " uygulandı!",
+            Duration = 2
+        })
+    end)
+end
 
 -- [Player Options]
 CreateToggle(PlayerTab, "Spinbot", "Spinbot")
@@ -630,10 +681,9 @@ MenuToggleStroke.Thickness = 2
 MenuToggleStroke.Parent = MenuToggleFrame
 
 local MenuToggleButton = Instance.new("TextButton")
-MenuToggleButton.Parent = ScreenGui
+MenuToggleButton.Parent = MenuToggleFrame
 MenuToggleButton.BackgroundTransparency = 1
-MenuToggleButton.Size = UDim2.new(0, 42, 0, 42)
-MenuToggleButton.Position = UDim2.new(0, 15, 0.5, -20)
+MenuToggleButton.Size = UDim2.new(1, 0, 1, 0)
 MenuToggleButton.Font = Enum.Font.GothamBold
 MenuToggleButton.Text = "FX"
 MenuToggleButton.TextColor3 = Theme.Accent
@@ -654,7 +704,6 @@ UserInputService.InputChanged:Connect(function(input)
         if delta.Magnitude > 5 then
             hasMovedMenuToggle = true
             MenuToggleFrame.Position = UDim2.new(startPosMenuToggle.X.Scale, startPosMenuToggle.X.Offset + delta.X, startPosMenuToggle.Y.Scale, startPosMenuToggle.Y.Offset + delta.Y)
-            MenuToggleButton.Position = MenuToggleFrame.Position
         end
     end
 end)
@@ -796,7 +845,6 @@ RunService.RenderStepped:Connect(function()
             local pName = tostring(player.UserId)
             local isFriendly = IsTeammate(player)
 
-            -- Eğer Takım Kontrolü açık ve oyuncu Takım Arkadaşıysa:
             if isFriendly then
                 local box = espFolder:FindFirstChild(pName .. "_Box")
                 if box then box.Visible = false end
@@ -804,8 +852,6 @@ RunService.RenderStepped:Connect(function()
                 if t then t.Visible = false end
                 local hl = espFolder:FindFirstChild(pName .. "_Chams")
                 if hl then hl.Enabled = false end
-                
-                -- KESİN DÜZELTME: Aimbot hesaplamalarına kesinlikle girmemesi için pas geç
                 continue
             end
 
