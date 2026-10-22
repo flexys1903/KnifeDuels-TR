@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = true,
+    TeamCheck = false,
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -101,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (ig:utku.ss) Yüklendi!",
+        Text = "FlexysHub (Stabil Sürüm) Yüklendi!",
         Duration = 3
     })
 end)
@@ -132,37 +132,14 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- ABSOLUTE TEAMMATE DETECTOR (YEŞİL & TAKIM KONTROLÜ)
+-- SAFE TEAM CHECK (KASMAYAN VE BOZMAYAN YAPI)
 ---------------------------------------------------------
-local function IsGreenColor(color)
-    if not color then return false end
-    return (color.G > 0.4 and color.G > color.R and color.G > color.B)
-end
-
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    -- 1. Roblox Team Kontrolü
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
-        if LocalPlayer.Team == player.Team then return true end
-    end
-    if LocalPlayer.TeamColor ~= nil and player.TeamColor ~= nil then
-        if LocalPlayer.TeamColor == player.TeamColor then return true end
-    end
-
-    -- 2. Karakter Üzerindeki Yeşil Renk / Highlight / UI Taraması (Takım Arkadaşı Tespiti)
-    local char = player.Character
-    if char then
-        for _, obj in ipairs(char:GetDescendants()) do
-            if obj:IsA("Highlight") then
-                if IsGreenColor(obj.FillColor) or IsGreenColor(obj.OutlineColor) then return true end
-            elseif obj:IsA("TextLabel") or obj:IsA("TextButton") then
-                if IsGreenColor(obj.TextColor3) then return true end
-            elseif obj:IsA("BasePart") or obj:IsA("MeshPart") then
-                if IsGreenColor(obj.Color) then return true end
-            end
-        end
+        return LocalPlayer.Team == player.Team
     end
 
     return false
@@ -806,7 +783,7 @@ RunService.RenderStepped:Connect(function()
                 if t then t.Visible = false end
                 local hl = espFolder:FindFirstChild(pName .. "_Chams")
                 if hl then hl.Enabled = false end
-                continue -- Takım arkadaşıysa bu oyuncuyu tamamen atla (Aimbot ve ESP uygulanmaz)
+                continue
             end
 
             local char = player.Character
