@@ -101,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (Optimize Sürüm) Yüklendi!",
+        Text = "FlexysHub (Tam Takım Düzeltmesi) Yüklendi!",
         Duration = 3
     })
 end)
@@ -132,14 +132,34 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- STABLE TEAM CHECK
+-- ADVANCED GAME-SPECIFIC TEAM CHECK
 ---------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
+    -- 1. Standart Roblox Takım Kontrolü (nil olmama şartı eklendi)
     if LocalPlayer.Team ~= nil and player.Team ~= nil then
         return LocalPlayer.Team == player.Team
+    end
+
+    -- 2. Knife Duels Özel Değer Kontrolü (Player ve Character altındaki Value'lar)
+    local myChar = LocalPlayer.Character
+    local targetChar = player.Character
+
+    local myTeamVal = LocalPlayer:FindFirstChild("TeamValue") or LocalPlayer:FindFirstChild("Team") or (myChar and (myChar:FindFirstChild("TeamValue") or myChar:FindFirstChild("Team")))
+    local targetTeamVal = player:FindFirstChild("TeamValue") or player:FindFirstChild("Team") or (targetChar and (targetChar:FindFirstChild("TeamValue") or targetChar:FindFirstChild("Team")))
+
+    if myTeamVal and targetTeamVal and myTeamVal.Value ~= nil and targetTeamVal.Value ~= nil then
+        return myTeamVal.Value == targetTeamVal.Value
+    end
+
+    -- 3. Oyuncu isimlerinin yeşil/dost etiketi kontrolü (Knife Duels 2v2 Modları için)
+    if targetChar then
+        local friendTag = targetChar:FindFirstChild("IsTeammate") or targetChar:FindFirstChild("Friendly")
+        if friendTag and friendTag.Value == true then
+            return true
+        end
     end
 
     return false
@@ -773,15 +793,10 @@ RunService.RenderStepped:Connect(function()
         for _, player in ipairs(Players:GetPlayers()) do
             if player == LocalPlayer then continue end
 
-            local char = player.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            local head = char and char:FindFirstChild("Head")
-            local hum = char and char:FindFirstChild("Humanoid")
-            local isAlive = hum and hum.Health > 0
-
             local pName = tostring(player.UserId)
             local isFriendly = IsTeammate(player)
 
+            -- Eğer Takım Kontrolü açık ve oyuncu Takım Arkadaşıysa:
             if isFriendly then
                 local box = espFolder:FindFirstChild(pName .. "_Box")
                 if box then box.Visible = false end
@@ -789,8 +804,16 @@ RunService.RenderStepped:Connect(function()
                 if t then t.Visible = false end
                 local hl = espFolder:FindFirstChild(pName .. "_Chams")
                 if hl then hl.Enabled = false end
+                
+                -- KESİN DÜZELTME: Aimbot hesaplamalarına kesinlikle girmemesi için pas geç
                 continue
             end
+
+            local char = player.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            local head = char and char:FindFirstChild("Head")
+            local hum = char and char:FindFirstChild("Humanoid")
+            local isAlive = hum and hum.Health > 0
 
             if isAlive and root and head then
                 local rootPos, onScreen = cam:WorldToViewportPoint(root.Position)
