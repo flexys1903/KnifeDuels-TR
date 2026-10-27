@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = true, -- Başlangıçta açık[span_1](start_span)[span_1](end_span)
+    TeamCheck = true, -- Başlangıçta açık
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -101,7 +101,7 @@ local Theme = {
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Knife Duels Scripti",
-        Text = "FlexysHub (beratt4638) Yüklendi!",
+        Text = "FlexysHub (beratt4638) ig:utku.ss",
         Duration = 3
     })
 end)
@@ -132,19 +132,35 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- STABLE SAFE TEAM CHECK (ÇÖKMEYEN FİLTRE)
+-- KESİN ÇÖZÜM: YEŞİL VURGU (HIGHLIGHT) VE TAKIM FİLTRESİ
 ---------------------------------------------------------
+local function IsGreenColor(color)
+    if not color then return false end
+    -- Yeşil rengin tonunu yakalar (Yeşil kanal R ve B'den baskınsa takımdır)
+    return (color.G > 0.35 and color.G > color.R and color.G > color.B)
+end
+
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    -- Standart Roblox takım kontrolü (Takımlar atanmışsa)
-    if LocalPlayer.Team and player.Team then
-        return LocalPlayer.Team == player.Team
+    local char = player.Character
+    if char then
+        -- Ekran görüntüsündeki gibi yeşil Highlight (çerçeve/vurgu) varsa kesinlikle takım arkadaşıdır!
+        for _, obj in ipairs(char:GetDescendants()) do
+            if obj:IsA("Highlight") then
+                if IsGreenColor(obj.FillColor) or IsGreenColor(obj.OutlineColor) then
+                    return true
+                end
+            end
+        end
     end
 
-    -- Knife Duels özel durumu: Eğer oyun içi takım/renk ataması yapılmadıysa 
-    -- herkesi düşman kabul edip ESP/Aimbot'un çalışmasını engellememesini sağlıyoruz.
+    -- Standart Roblox Team kontrolü
+    if LocalPlayer.Team and player.Team and LocalPlayer.Team == player.Team then
+        return true
+    end
+
     return false
 end
 
@@ -779,7 +795,7 @@ RunService.RenderStepped:Connect(function()
             local pName = tostring(player.UserId)
             local isFriendly = IsTeammate(player)
 
-            -- Eğer oyuncu kesinlikle takım arkadaşıysa ESP ve Aimbot'u bu oyuncu için kapat
+            -- Eğer takım arkadaşıysa (yeşil vurgusu varsa) ESP ve Aimbot'u tamamen atla!
             if isFriendly then
                 local box = espFolder:FindFirstChild(pName .. "_Box")
                 if box then box.Visible = false end
