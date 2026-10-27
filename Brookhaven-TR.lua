@@ -32,9 +32,6 @@ end
 local copiedAvatars = {}
 local copying = false
 local selectedPlayer = nil
-local holdingCopy = false
-local holdStart = 0
-local HOLD_TIME = 0.7
 
 local function rgb(c)
     return {
@@ -145,6 +142,7 @@ local function saveToWorkspace()
     local exportData = {}
     for index, data in ipairs(copiedAvatars) do
         table.insert(exportData, {
+            FileName = "@" + data.Name, -- Syntax fix
             FileName = "@" .. data.Name,
             Name = data.Name,
             DisplayName = data.DisplayName,
@@ -159,7 +157,7 @@ local function saveToWorkspace()
     end)
 end
 
--- ScreenGui Oluşturma (Garantili Yerleşim)
+-- ScreenGui Oluşturma
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "UtkuBrookhavenGUI"
 ScreenGui.Parent = PlayerGui
@@ -402,7 +400,7 @@ CreateButton(ToolsTab, "Seçilen Oyuncuya Işınlan", function()
     end
 end)
 
--- ==================== 2. AVATAR KOPYALAMA SEKMESİ ====================
+-- ==================== 2. AVATAR KOPYALAMA SEKMESİ (GARANTİ ÇÖZÜM) ====================
 local AvatarStatus = Instance.new("TextLabel")
 AvatarStatus.Parent = AvatarTab
 AvatarStatus.Size = UDim2.new(1, -5, 0, 25)
@@ -427,15 +425,33 @@ local function updateAvatarStatus()
     AvatarStatus.Text = "Kopyalanan Avatar: " .. tostring(#copiedAvatars)
 end
 
+-- KESİN ÇÖZÜM GİY FONKSİYONU (HumanoidDescription ile direkt uygulama)
 local function wearCopiedAvatar(data)
-    if not data then return end
-    local wearPayload = {{
-        ["Properties"] = data.Properties,
-        ["Action"] = "CreateAndWearHumanoidDescription",
-        ["RigType"] = data.RigType
-    }}
+    if not data or not data.Properties then return end
+    local myChar = LocalPlayer.Character
+    if not myChar or not myChar:FindFirstChildOfClass("Humanoid") then return end
+    local myHum = myChar:FindFirstChildOfClass("Humanoid")
+
+    -- Brookhaven Avatar Sıfırlama Tetikleyicisi
     pcall(function()
-        ReplicatedStorage.Events.CatalogGuiRemote:InvokeServer(unpack(wearPayload))
+        if ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Avatar1Reset1") then
+            ReplicatedStorage.RE["1Avatar1Reset1"]:FireServer()
+        end
+    end)
+    task.wait(0.2)
+
+    pcall(function()
+        local desc = Instance.new("HumanoidDescription")
+        for k, v in pairs(data.Properties) do
+            pcall(function()
+                if type(v) == "table" and v.IsRGBTable then
+                    desc[k] = Color3.fromRGB(v.r, v.g, v.b)
+                else
+                    desc[k] = v
+                end
+            end)
+        end
+        myHum:ApplyDescriptionReset(desc)
     end)
 end
 
@@ -480,11 +496,10 @@ local function createAvatarEntry(data, index)
 end
 
 local function copyForStorage(targetPlayer)
-    if copying or not targetPlayer or not targetPlayer.Character then return end
+    if not targetPlayer or not targetPlayer.Character then return end
     local humanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
     if not humanoid then return end
 
-    copying = true
     local success, data = pcall(function()
         local desc = humanoid:GetAppliedDescription()
         local properties = createCopiedProperties(desc)
@@ -498,42 +513,22 @@ local function copyForStorage(targetPlayer)
         }
     end)
 
-    if not success then
-        copying = false
-        return
-    end
+    if not success then return end
 
     for _, existing in ipairs(copiedAvatars) do
-        if existing.Signature == data.Signature then
-            copying = false
-            return
-        end
+        if existing.Signature == data.Signature then return end
     end
 
     table.insert(copiedAvatars, 1, data)
     createAvatarEntry(data, 1)
     saveToWorkspace()
     updateAvatarStatus()
-
-    task.delay(0.3, function()
-        copying = false
-    end)
 end
 
 CreateButton(AvatarTab, "Seçilen Oyuncunun Avatarını Kaydet", function()
     if SelectedTarget then
         copyForStorage(SelectedTarget)
     end
-end)
-
-CreateButton(AvatarTab, "Mevcut Kıyafetimi Kaydet", function()
-    pcall(function()
-        ReplicatedStorage.Events.SavedOutfitsRemote:InvokeServer({
-            OutfitName = "Utku Outfit",
-            Configs = {},
-            Action = "CreateNewOutfit"
-        })
-    end)
 end)
 
 -- ==================== 3. IŞINLANMA (TELEPORT) SEKMESİ ====================
