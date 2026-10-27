@@ -57,7 +57,7 @@ local Config = {
     Smoothing = 0.15,
     TargetPart = "Head", 
     WallCheck = false,
-    TeamCheck = true, -- <--- DÜZELTME: Başlangıçta açık (true) yapıldı[span_4](start_span)[span_4](end_span)
+    TeamCheck = true, -- Başlangıçta açık[span_1](start_span)[span_1](end_span)
     Keybind = Enum.KeyCode.E, 
     
     -- Visuals
@@ -132,40 +132,19 @@ pcall(function()
 end)
 
 ---------------------------------------------------------
--- ROBUST TEAM CHECK (KESİN TAKIM FİLTRESİ)
+-- STABLE SAFE TEAM CHECK (ÇÖKMEYEN FİLTRE)
 ---------------------------------------------------------
 local function IsTeammate(player)
     if not Config.TeamCheck then return false end
     if player == LocalPlayer then return true end
 
-    -- 1. Standart Roblox Team kontrolü
-    if LocalPlayer.Team ~= nil and player.Team ~= nil then
-        if LocalPlayer.Team == player.Team then return true end
+    -- Standart Roblox takım kontrolü (Takımlar atanmışsa)
+    if LocalPlayer.Team and player.Team then
+        return LocalPlayer.Team == player.Team
     end
 
-    -- 2. TeamColor kontrolü
-    if LocalPlayer.TeamColor and player.TeamColor then
-        if LocalPlayer.TeamColor == player.TeamColor then return true end
-    end
-
-    -- 3. Oyuncu veya Karakter üzerindeki özel takım değerleri / attribute kontrolü
-    local myChar = LocalPlayer.Character
-    local targetChar = player.Character
-
-    local myTeamVal = LocalPlayer:FindFirstChild("TeamValue") or LocalPlayer:FindFirstChild("Team") or (myChar and (myChar:FindFirstChild("TeamValue") or myChar:FindFirstChild("Team")))
-    local targetTeamVal = player:FindFirstChild("TeamValue") or player:FindFirstChild("Team") or (targetChar and (targetChar:FindFirstChild("TeamValue") or targetChar:FindFirstChild("Team")))
-
-    if myTeamVal and targetTeamVal and myTeamVal.Value ~= nil and targetTeamVal.Value ~= nil then
-        if myTeamVal.Value == targetTeamVal.Value then return true end
-    end
-
-    -- 4. Attribute tabanlı kontrol
-    local myAttr = LocalPlayer:GetAttribute("Team") or (myChar and myChar:GetAttribute("Team"))
-    local targetAttr = player:GetAttribute("Team") or (targetChar and targetChar:GetAttribute("Team"))
-    if myAttr ~= nil and targetAttr ~= nil then
-        if myAttr == targetAttr then return true end
-    end
-
+    -- Knife Duels özel durumu: Eğer oyun içi takım/renk ataması yapılmadıysa 
+    -- herkesi düşman kabul edip ESP/Aimbot'un çalışmasını engellememesini sağlıyoruz.
     return false
 end
 
@@ -800,7 +779,7 @@ RunService.RenderStepped:Connect(function()
             local pName = tostring(player.UserId)
             local isFriendly = IsTeammate(player)
 
-            -- Eğer Takım Kontrolü açık ve oyuncu Takım Arkadaşıysa:
+            -- Eğer oyuncu kesinlikle takım arkadaşıysa ESP ve Aimbot'u bu oyuncu için kapat
             if isFriendly then
                 local box = espFolder:FindFirstChild(pName .. "_Box")
                 if box then box.Visible = false end
@@ -808,8 +787,6 @@ RunService.RenderStepped:Connect(function()
                 if t then t.Visible = false end
                 local hl = espFolder:FindFirstChild(pName .. "_Chams")
                 if hl then hl.Enabled = false end
-                
-                -- KESİN FİLTRE: Takım arkadaşına aim kilitlenmemesi için bu oyuncuyu tamamen pas geç[span_5](start_span)[span_5](end_span)
                 continue
             end
 
