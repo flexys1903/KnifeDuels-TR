@@ -2,16 +2,161 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local HttpService = game:GetService("HttpService")
+local Mouse = LocalPlayer:GetMouse()
 
 -- Var olan UI varsa temizle
 if PlayerGui:FindFirstChild("UtkuBrookhavenGUI") then
     PlayerGui.UtkuBrookhavenGUI:Destroy()
 end
+if PlayerGui:FindFirstChild("PremiumAvatarCopier") then
+    PlayerGui.PremiumAvatarCopier:Destroy()
+end
 if game:GetService("CoreGui"):FindFirstChild("UtkuBrookhavenGUI") then
     game:GetService("CoreGui").UtkuBrookhavenGUI:Destroy()
+end
+
+-- ==================== AVATAR KOPYALAMA DEĞİŞKENLERİ ====================
+local FOLDER_NAME = "Catalog Avatar Premium Clipboard"
+local FILE_PATH = FOLDER_NAME .. "/SavedOutfits.json"
+
+if makefolder and isfolder then
+    if not isfolder(FOLDER_NAME) then
+        makefolder(FOLDER_NAME)
+    end
+end
+
+local copiedAvatars = {}
+local copying = false
+local selectedPlayer = nil
+local holdingCopy = false
+local holdStart = 0
+local HOLD_TIME = 0.7
+
+local function rgb(c)
+    return {
+        r = math.floor(c.R * 255),
+        g = math.floor(c.G * 255),
+        b = math.floor(c.B * 255),
+        IsRGBTable = true
+    }
+end
+
+local function vector(v)
+    return {
+        X = v.X,
+        Y = v.Y,
+        Z = v.Z,
+        Vector3 = true
+    }
+end
+
+local function getLayeredAccessories(desc)
+    local result = {}
+    for _, accessory in pairs(desc:GetAccessories(true)) do
+        if accessory.IsLayered then
+            table.insert(result, {
+                Rotation = vector(accessory.Rotation),
+                AssetId = accessory.AssetId,
+                AccessoryType = accessory.AccessoryType.Name,
+                Position = vector(accessory.Position),
+                Order = accessory.Order,
+                IsLayered = true,
+                Puffiness = accessory.Puffiness,
+                Scale = vector(accessory.Scale)
+            })
+        end
+    end
+    return result
+end
+
+local function createCopiedProperties(desc)
+    local props = {
+        ["WalkAnimation"] = desc.WalkAnimation,
+        ["MoodAnimation"] = desc.MoodAnimation,
+        ["ClimbAnimation"] = desc.ClimbAnimation,
+        ["FallAnimation"] = desc.FallAnimation,
+        ["RunAnimation"] = desc.RunAnimation,
+        ["SwimAnimation"] = desc.SwimAnimation,
+        ["IdleAnimation"] = desc.IdleAnimation,
+        ["JumpAnimation"] = desc.JumpAnimation,
+
+        ["Face"] = desc.Face,
+        ["Shirt"] = desc.Shirt,
+        ["Pants"] = desc.Pants,
+        ["GraphicTShirt"] = desc.GraphicTShirt,
+
+        ["RightArmColor"] = rgb(desc.RightArmColor),
+        ["TorsoColor"] = rgb(desc.TorsoColor),
+        ["RightLegColor"] = rgb(desc.RightLegColor),
+        ["LeftLegColor"] = rgb(desc.LeftLegColor),
+        ["LeftArmColor"] = rgb(desc.LeftArmColor),
+        ["HeadColor"] = rgb(desc.HeadColor),
+
+        ["Head"] = desc.Head,
+        ["Torso"] = desc.Torso,
+        ["LeftArm"] = desc.LeftArm,
+        ["RightArm"] = desc.RightArm,
+        ["LeftLeg"] = desc.LeftLeg,
+        ["RightLeg"] = desc.RightLeg,
+
+        ["ProportionScale"] = desc.ProportionScale,
+        ["DepthScale"] = desc.DepthScale,
+        ["HeightScale"] = desc.HeightScale,
+        ["WidthScale"] = desc.WidthScale,
+        ["BodyTypeScale"] = desc.BodyTypeScale,
+        ["HeadScale"] = desc.HeadScale,
+
+        ["FaceAccessory"] = desc.FaceAccessory,
+        ["HairAccessory"] = desc.HairAccessory,
+        ["WaistAccessory"] = desc.WaistAccessory,
+        ["ShouldersAccessory"] = desc.ShouldersAccessory,
+        ["NeckAccessory"] = desc.NeckAccessory,
+        ["HatAccessory"] = desc.HatAccessory,
+        ["FrontAccessory"] = desc.FrontAccessory,
+        ["BackAccessory"] = desc.BackAccessory,
+
+        ["LayeredAccessories"] = getLayeredAccessories(desc),
+        ["AccessoryRefinements"] = {}
+    }
+
+    pcall(function() props["EyelashAccessory"] = desc.EyelashAccessory end)
+    pcall(function() props["EyebrowAccessory"] = desc.EyebrowAccessory end)
+    pcall(function() props["MoodAccessory"] = desc.MoodAccessory end)
+
+    return props
+end
+
+local function getAvatarSignature(properties, rigType)
+    local success, result = pcall(function()
+        return HttpService:JSONEncode({
+            Properties = properties,
+            RigType = tostring(rigType)
+        })
+    end)
+    return success and result or tostring(properties)
+end
+
+local function saveToWorkspace()
+    if not writefile then return end
+    local exportData = {}
+    for index, data in ipairs(copiedAvatars) do
+        table.insert(exportData, {
+            FileName = "@" .. data.Name,
+            Name = data.Name,
+            DisplayName = data.DisplayName,
+            Properties = data.Properties,
+            RigType = tostring(data.RigType),
+            Signature = data.Signature,
+            Order = index
+        })
+    end
+    pcall(function()
+        writefile(FILE_PATH, HttpService:JSONEncode(exportData))
+    end)
 end
 
 -- ScreenGui Oluşturma (Garantili Yerleşim)
@@ -151,6 +296,7 @@ end
 -- SEKMELERİ OLUŞTUR
 local TargetTab = CreateTab("Oyuncu Seç")
 local ToolsTab = CreateTab("İşlemler")
+local AvatarTab = CreateTab("Avatar")
 local TPTab = CreateTab("Işınlanma")
 local HouseTab = CreateTab("Ev / Ban")
 local VisualsTab = CreateTab("Visuals")
@@ -256,7 +402,141 @@ CreateButton(ToolsTab, "Seçilen Oyuncuya Işınlan", function()
     end
 end)
 
--- ==================== 2. IŞINLANMA (TELEPORT) SEKMESİ ====================
+-- ==================== 2. AVATAR KOPYALAMA SEKMESİ ====================
+local AvatarStatus = Instance.new("TextLabel")
+AvatarStatus.Parent = AvatarTab
+AvatarStatus.Size = UDim2.new(1, -5, 0, 25)
+AvatarStatus.BackgroundTransparency = 1
+AvatarStatus.Text = "Kopyalanan Avatar: 0"
+AvatarStatus.TextColor3 = BEIGE_ACCENT
+AvatarStatus.Font = Enum.Font.SourceSansBold
+AvatarStatus.TextSize = 12
+
+local AvatarScroll = Instance.new("ScrollingFrame")
+AvatarScroll.Parent = AvatarTab
+AvatarScroll.Size = UDim2.new(1, -5, 0, 160)
+AvatarScroll.BackgroundColor3 = HEADER_COLOR
+AvatarScroll.CanvasSize = UDim2.new(0, 0, 3, 0)
+AvatarScroll.ScrollBarThickness = 4
+
+local AvatarLayout = Instance.new("UIListLayout")
+AvatarLayout.Parent = AvatarScroll
+AvatarLayout.Padding = UDim.new(0, 3)
+
+local function updateAvatarStatus()
+    AvatarStatus.Text = "Kopyalanan Avatar: " .. tostring(#copiedAvatars)
+end
+
+local function wearCopiedAvatar(data)
+    if not data then return end
+    local wearPayload = {{
+        ["Properties"] = data.Properties,
+        ["Action"] = "CreateAndWearHumanoidDescription",
+        ["RigType"] = data.RigType
+    }}
+    pcall(function()
+        ReplicatedStorage.Events.CatalogGuiRemote:InvokeServer(unpack(wearPayload))
+    end)
+end
+
+local function createAvatarEntry(data, index)
+    local Entry = Instance.new("Frame")
+    Entry.Size = UDim2.new(1, -5, 0, 30)
+    Entry.BackgroundColor3 = BTN_COLOR
+    Entry.Parent = AvatarScroll
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 5)
+    Corner.Parent = Entry
+
+    local NameLabel = Instance.new("TextLabel")
+    NameLabel.Size = UDim2.new(1, -65, 1, 0)
+    NameLabel.Position = UDim2.new(0, 5, 0, 0)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text = "@" .. data.Name
+    NameLabel.TextColor3 = TEXT_COLOR
+    NameLabel.TextSize = 11
+    NameLabel.Font = Enum.Font.SourceSans
+    NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    NameLabel.Parent = Entry
+
+    local WearButton = Instance.new("TextButton")
+    WearButton.Size = UDim2.new(0, 55, 0, 22)
+    WearButton.Position = UDim2.new(1, -60, 0, 4)
+    WearButton.BackgroundColor3 = BEIGE_ACCENT
+    WearButton.Text = "GİY"
+    WearButton.TextColor3 = BG_COLOR
+    WearButton.TextSize = 10
+    WearButton.Font = Enum.Font.SourceSansBold
+    WearButton.Parent = Entry
+
+    local WearCorner = Instance.new("UICorner")
+    WearCorner.CornerRadius = UDim.new(0, 4)
+    WearCorner.Parent = WearButton
+
+    WearButton.MouseButton1Click:Connect(function()
+        wearCopiedAvatar(data)
+    end)
+end
+
+local function copyForStorage(targetPlayer)
+    if copying or not targetPlayer or not targetPlayer.Character then return end
+    local humanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    copying = true
+    local success, data = pcall(function()
+        local desc = humanoid:GetAppliedDescription()
+        local properties = createCopiedProperties(desc)
+        return {
+            Name = targetPlayer.Name,
+            DisplayName = targetPlayer.DisplayName,
+            Properties = properties,
+            RigType = humanoid.RigType,
+            Signature = getAvatarSignature(properties, humanoid.RigType),
+            Order = 1
+        }
+    end)
+
+    if not success then
+        copying = false
+        return
+    end
+
+    for _, existing in ipairs(copiedAvatars) do
+        if existing.Signature == data.Signature then
+            copying = false
+            return
+        end
+    end
+
+    table.insert(copiedAvatars, 1, data)
+    createAvatarEntry(data, 1)
+    saveToWorkspace()
+    updateAvatarStatus()
+
+    task.delay(0.3, function()
+        copying = false
+    end)
+end
+
+CreateButton(AvatarTab, "Seçilen Oyuncunun Avatarını Kaydet", function()
+    if SelectedTarget then
+        copyForStorage(SelectedTarget)
+    end
+end)
+
+CreateButton(AvatarTab, "Mevcut Kıyafetimi Kaydet", function()
+    pcall(function()
+        ReplicatedStorage.Events.SavedOutfitsRemote:InvokeServer({
+            OutfitName = "Utku Outfit",
+            Configs = {},
+            Action = "CreateNewOutfit"
+        })
+    end)
+end)
+
+-- ==================== 3. IŞINLANMA (TELEPORT) SEKMESİ ====================
 local Locations = {
     ["Merkez / Spawn"] = Vector3.new(-12, 18, 120),
     ["Karakol / Polis"] = Vector3.new(-140, 18, 180),
@@ -274,7 +554,7 @@ for name, pos in pairs(Locations) do
     end)
 end
 
--- ==================== 3. EV BAN KALDIRMA SEKMESİ ====================
+-- ==================== 4. EV BAN KALDIRMA SEKMESİ ====================
 CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj.Name == "BanBlock" or obj.Name == "BanBariyer" or obj.Name == "HouseBan" or (obj:IsA("BasePart") and string.find(string.lower(obj.Name), "ban")) then
@@ -291,7 +571,7 @@ CreateButton(HouseTab, "Ev Banlarını Kaldır (Unban All)", function()
     end
 end)
 
--- ==================== 4. VISUALS (ESP) SEKMESİ ====================
+-- ==================== 5. VISUALS (ESP) SEKMESİ ====================
 local ESPEnabled = false
 local ESPObjects = {}
 
@@ -344,7 +624,7 @@ CreateButton(VisualsTab, "Oyuncu ESP Aç/Kapat", function()
     end
 end)
 
--- ==================== 5. HAKKIMDA SEKMESİ ====================
+-- ==================== 6. HAKKIMDA SEKMESİ ====================
 local AboutLabel = Instance.new("TextLabel")
 AboutLabel.Parent = AboutTab
 AboutLabel.Size = UDim2.new(1, -5, 0, 30)
