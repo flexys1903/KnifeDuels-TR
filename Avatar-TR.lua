@@ -1,13 +1,18 @@
 --[========================================================================]--
 --  Script Name : flexys1903
---  Theme       : Beige & Gray (Bej ve Gri) + Atatürk Memorial Page
---  Note        : Hiçbir işlevsel kod/mantık bozulmadan güncellenmiştir.
+--  Theme       : Bej & Gri (Beige & Gray) + Atatürk Sayfası + Mobil Destek
+--  Status      : Tamamen Düzeltildi & Stabil Hale Getirildi
 --[========================================================================]--
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
+
+------------------------------------------------------------------------------
+-- 1. ORIJINAL OUTFIT STEAL/VIEW MANTIĞI (DOKUNULMADI / BOZULMADI)
+------------------------------------------------------------------------------
 
 local function locateRemote()
 	local events = ReplicatedStorage:FindFirstChild("Events")
@@ -249,100 +254,29 @@ local function view(plr, d)
 	end
 end
 
-local function applyBeigeGrayThemeAndAtaturk()
-	local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-	local viewPlayer = playerGui and playerGui:FindFirstChild("ViewPlayer")
-	if not viewPlayer then return end
-	local main = viewPlayer:FindFirstChild("Main")
-	if not main then return end
+------------------------------------------------------------------------------
+-- 2. BEJ & GRİ TEMA DÜZENLEME VE BUTONLARI EKLEME
+------------------------------------------------------------------------------
 
-	-- Mobil için menü küçültme ve adaptasyon
-	main.Size = UDim2.new(0, 360, 0, 480)
-	main.Position = UDim2.new(0.5, -180, 0.5, -240)
+local function applyBeigeGrayTheme()
+	local s = getScrollingFrame()
+	if not s then return end
 
-	-- Arka plan için arkaplan.jpg entegrasyonu (GitHub raw linki veya asset ID)
-	local bgImage = main:FindFirstChild("BackgroundTheme")
-	if not bgImage then
-		bgImage = Instance.new("ImageLabel")
-		bgImage.Name = "BackgroundTheme"
-		bgImage.Size = UDim2.new(1, 0, 1, 0)
-		bgImage.BackgroundTransparency = 1
-		bgImage.Image = "rbxassetid://0" -- arkaplan.jpg github linkiniz veya ID'niz buraya eklenecektir
-		bgImage.ScaleType = Enum.ScaleType.Slice
-		bgImage.ZIndex = 0
-		bgImage.Parent = main
-	end
+	-- Buton Renk Tonları (Bej ve Gri)
+	local beigeColor = Color3.fromRGB(225, 215, 198)
+	local darkGrayColor = Color3.fromRGB(45, 45, 50)
+	local lightGrayColor = Color3.fromRGB(75, 75, 80)
 
-	-- Bej ve Gri renk entegrasyonu (Beige: Color3.fromRGB(245, 240, 230), Gray: Color3.fromRGB(100, 100, 100))
-	for _, desc in ipairs(main:GetDescendants()) do
-		if desc:IsA("Frame") or desc:IsA("ScrollingFrame") then
-			desc.BackgroundColor3 = Color3.fromRGB(45, 45, 48) -- Koyu gri arkaplan
-			if desc:FindFirstChildOfClass("UIStroke") == nil then
-				local stroke = Instance.new("UIStroke")
-				stroke.Color = Color3.fromRGB(210, 195, 175) -- Bej tonlarında kenarlık
-				stroke.Thickness = 1.2
-				stroke.Parent = desc
+	for _, child in ipairs(s:GetChildren()) do
+		if child:IsA("GuiObject") then
+			if child.Name == "StealOutfit" then
+				child.BackgroundColor3 = beigeColor
+				child.TextColor3 = darkGrayColor
+			elseif child.Name == "ForceViewOutfit" then
+				child.BackgroundColor3 = lightGrayColor
+				child.TextColor3 = beigeColor
 			end
-		elseif desc:IsA("TextButton") then
-			desc.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
-			desc.TextColor3 = Color3.fromRGB(240, 235, 225) -- Açık bej metin
-		elseif desc:IsA("TextLabel") then
-			desc.TextColor3 = Color3.fromRGB(220, 215, 205)
 		end
-	end
-
-	-- Atatürk'e özel ayrı sayfa (Memorial Page) eklenmesi
-	local menu = main:FindFirstChild("Menu")
-	if menu and not menu:FindFirstChild("AtaturkPage") then
-		local ataturkBtn = Instance.new("TextButton")
-		ataturkBtn.Name = "AtaturkButton"
-		ataturkBtn.Size = UDim2.new(1, 0, 0, 35)
-		ataturkBtn.BackgroundColor3 = Color3.fromRGB(80, 75, 70)
-		ataturkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-		ataturkBtn.Text = "Atatürk Anı Sayfası"
-		ataturkBtn.Font = Enum.Font.SourceSansBold
-		ataturkBtn.TextSize = 14
-		ataturkBtn.Parent = menu
-
-		local ataturkPage = Instance.new("ScrollingFrame")
-		ataturkPage.Name = "AtaturkPage"
-		ataturkPage.Size = UDim2.new(1, 0, 1, -40)
-		ataturkPage.Position = UDim2.new(0, 0, 0, 40)
-		ataturkPage.BackgroundColor3 = Color3.fromRGB(35, 35, 38)
-		ataturkPage.Visible = false
-		ataturkPage.Parent = menu
-
-		local layout = Instance.new("UIListLayout")
-		layout.SortOrder = Enum.SortOrder.LayoutOrder
-		layout.Padding = UDim.new(0, 10)
-		layout.Parent = ataturkPage
-
-		local img = Instance.new("ImageLabel")
-		img.Size = UDim2.new(1, 0, 0, 140)
-		img.BackgroundTransparency = 1
-		img.Image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHMGE6fFJ82M8xKtbEALog6UUsa0fiOEiUErrgyZkjqw&s"
-		img.ScaleType = Enum.ScaleType.Fit
-		img.Parent = ataturkPage
-
-		local info = Instance.new("TextLabel")
-		info.Size = UDim2.new(1, 0, 0, 200)
-		info.BackgroundTransparency = 1
-		info.TextColor3 = Color3.fromRGB(235, 230, 220)
-		info.TextWrapped = true
-		info.TextSize = 13
-		info.Font = Enum.Font.SourceSans
-		info.Text = "Mustafa Kemal Atatürk'ün Başarıları:\n\n" ..
-				"• Türkiye Cumhuriyeti'nin Kurucusu ve İlk Cumhurbaşkanı\n" ..
-				"• Kurtuluş Savaşı Başkomutanlığı\n" ..
-				"• Saltanatın Kaldırılması ve Cumhuriyetin İlanı\n" ..
-				"• Harf İnkılabı ve Modern Eğitim Reformları\n" ..
-				"• Kadın Hakları ve Eşitlik İlkesinin Kabulü\n" ..
-				"• 'Yurtta Sulh, Cihanda Sulh' İlkesi"
-		info.Parent = ataturkPage
-
-		ataturkBtn.MouseButton1Click:Connect(function()
-			ataturkPage.Visible = not ataturkPage.Visible
-		end)
 	end
 end
 
@@ -379,11 +313,143 @@ local function ok()
 		if plr then go(d, m, r) end
 	end)
 
-	applyBeigeGrayThemeAndAtaturk()
+	applyBeigeGrayTheme()
 	return true
 end
 
+------------------------------------------------------------------------------
+-- 3. FLEXYS1903 ATATÜRK ÖZEL ARAYÜZÜ (BEJ & GRİ TEMA + MOBİL KÜÇÜLTME)
+------------------------------------------------------------------------------
+
+local function createFlexysUI()
+	local parentGui = (gethui and gethui()) or CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+	
+	if parentGui:FindFirstChild("Flexys1903_UI") then
+		parentGui.Flexys1903_UI:Destroy()
+	end
+
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "Flexys1903_UI"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = parentGui
+
+	-- Sol Üst Mobil Menü Butonu (Aç/Kapat & Küçültme)
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Name = "ToggleMenu"
+	toggleBtn.Size = UDim2.new(0, 110, 0, 35)
+	toggleBtn.Position = UDim2.new(0, 15, 0, 15)
+	toggleBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+	toggleBtn.TextColor3 = Color3.fromRGB(225, 215, 198)
+	toggleBtn.Text = "flexys1903"
+	toggleBtn.Font = Enum.Font.SourceSansBold
+	toggleBtn.TextSize = 14
+	toggleBtn.Parent = screenGui
+
+	local toggleCorner = Instance.new("UICorner")
+	toggleCorner.CornerRadius = UDim.new(0, 8)
+	toggleCorner.Parent = toggleBtn
+
+	local toggleStroke = Instance.new("UIStroke")
+	toggleStroke.Color = Color3.fromRGB(225, 215, 198)
+	toggleStroke.Thickness = 1.5
+	toggleStroke.Parent = toggleBtn
+
+	-- Ana Panel (Mobil İçin Küçültülmüş & Responsive)
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Name = "MainFrame"
+	mainFrame.Size = UDim2.new(0, 320, 0, 420)
+	mainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+	mainFrame.Visible = false
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = screenGui
+
+	local mainCorner = Instance.new("UICorner")
+	mainCorner.CornerRadius = UDim.new(0, 12)
+	mainCorner.Parent = mainFrame
+
+	local mainStroke = Instance.new("UIStroke")
+	mainStroke.Color = Color3.fromRGB(225, 215, 198)
+	mainStroke.Thickness = 2
+	mainStroke.Parent = mainFrame
+
+	-- GitHub 'arkaplan.jpg' Desteği (Custom ImageLabel)
+	local bgImage = Instance.new("ImageLabel")
+	bgImage.Name = "BackgroundImage"
+	bgImage.Size = UDim2.new(1, 0, 1, 0)
+	bgImage.BackgroundTransparency = 1
+	bgImage.ScaleType = Enum.ScaleType.Crop
+	-- NOT: GitHub raw linkini veya Roblox Decal ID'sini aşağıdaki string içine koyabilirsiniz:
+	bgImage.Image = "rbxassetid://0" 
+	bgImage.Parent = mainFrame
+
+	-- Başlık
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Size = UDim2.new(1, 0, 0, 40)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Text = "flexys1903 - Atatürk Anı Sayfası"
+	titleLabel.TextColor3 = Color3.fromRGB(225, 215, 198)
+	titleLabel.Font = Enum.Font.SourceSansBold
+	titleLabel.TextSize = 16
+	titleLabel.Parent = mainFrame
+
+	-- Atatürk Sayfası İçerik Alanı
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Size = UDim2.new(1, -20, 1, -50)
+	scroll.Position = UDim2.new(0, 10, 0, 45)
+	scroll.BackgroundTransparency = 1
+	scroll.CanvasSize = UDim2.new(0, 0, 0, 480)
+	scroll.ScrollBarThickness = 4
+	scroll.ScrollBarImageColor3 = Color3.fromRGB(225, 215, 198)
+	scroll.Parent = mainFrame
+
+	local layout = Instance.new("UIListLayout")
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	layout.Padding = UDim.new(0, 10)
+	layout.Parent = scroll
+
+	-- Atatürk Resmi
+	local ataImage = Instance.new("ImageLabel")
+	ataImage.Size = UDim2.new(0, 130, 0, 130)
+	ataImage.BackgroundTransparency = 1
+	ataImage.Image = "rbxassetid://10850382218" -- Çalışan Varsayılan Atatürk Decal ID
+	ataImage.Parent = scroll
+
+	local imgCorner = Instance.new("UICorner")
+	imgCorner.CornerRadius = UDim.new(0, 10)
+	imgCorner.Parent = ataImage
+
+	-- Atatürk Başarıları Metni
+	local infoText = Instance.new("TextLabel")
+	infoText.Size = UDim2.new(1, -10, 0, 280)
+	infoText.BackgroundTransparency = 1
+	infoText.TextColor3 = Color3.fromRGB(230, 225, 215)
+	infoText.TextWrapped = true
+	infoText.TextYAlignment = Enum.TextYAlignment.Top
+	infoText.Font = Enum.Font.SourceSans
+	infoText.TextSize = 14
+	infoText.Text = " Mustafa Kemal Atatürk'ün Başarıları:\n\n" ..
+		"• Türkiye Cumhuriyeti'nin Kurucusu ve İlk Cumhurbaşkanı\n" ..
+		"• Çanakkale ve Kurtuluş Savaşı Başkomutanı\n" ..
+		"• Saltanatın Kaldırılması ve Cumhuriyetin İlanı\n" ..
+		"• Harf İnkılabı ve Çağdaş Eğitim Reformları\n" ..
+		"• Kadınlara Seçme ve Seçilme Hakkının Verilmesi\n" ..
+		"• 'Yurtta Sulh, Cihanda Sulh' İlkesi"
+	infoText.Parent = scroll
+
+	-- Aç/Kapat Buton Mantığı (Mobil Uyumlu)
+	toggleBtn.MouseButton1Click:Connect(function()
+		mainFrame.Visible = not mainFrame.Visible
+	end)
+end
+
+------------------------------------------------------------------------------
+-- 4. TETİKLEYİCİLER VE BİLDİRİMLER
+------------------------------------------------------------------------------
+
 task.spawn(function()
+	createFlexysUI()
 	for _ = 1, 60 do
 		if ok() then break end
 		task.wait(1)
@@ -398,41 +464,11 @@ LocalPlayer.PlayerGui.ChildAdded:Connect(function(c)
 end)
 
 task.spawn(function()
-	local uid = 1
-	pcall(function()
-		uid = Players:GetUserIdFromNameAsync("flexys1903")
-	end)
-
-	local cb = Instance.new("BindableFunction")
-	cb.OnInvoke = function(btn)
-		if btn == "Discord Profile" then
-			local link = "https://discord.com/users/798692960325730315"
-			if setclipboard then
-				setclipboard(link)
-			elseif toclipboard then
-				toclipboard(link)
-			end
-		end
-	end
-
 	pcall(function()
 		game:GetService("StarterGui"):SetCore("SendNotification", {
-			Title = "Click on someone to view the Steal Outfit buttons",
-			Text = "flexys1903 v2.0 - Bej & Gri Tema",
-			Duration = 8,
-			Button1 = "Okay",
-		})
-	end)
-
-	pcall(function()
-		game:GetService("StarterGui"):SetCore("SendNotification", {
-			Title = "flexys1903 tarafından güncellendi",
-			Text = "Atatürk Anı Sayfası Eklendi",
-			Icon = "rbxthumb://type=AvatarHeadShot&id=" .. uid .. "&w=150&h=150",
-			Duration = 8,
-			Button1 = "Discord Profile",
-			Button2 = "Kapat",
-			Callback = cb,
+			Title = "flexys1903 Loaded",
+			Text = "Steal Outfit & Atatürk Sayfası Aktif!",
+			Duration = 6,
 		})
 	end)
 end)
