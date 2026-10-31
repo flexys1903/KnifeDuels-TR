@@ -1167,7 +1167,7 @@ cleanDeletedFavorites = function()
         return
     end
 
-    getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "Checking " .. totalChecks .. " favorites...", Duration = 3 })
+    getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "Kontrol ediliyor " .. totalChecks .. " favorites...", Duration = 3 })
 
     local deletedEmotes = {}
     local deletedAnims = {}
@@ -2669,7 +2669,7 @@ State.exitCustomAnimationEditor = function()
         State.CustomAnimForceVisibleConn = nil 
     end
 
-    if UI.Search then UI.Search.TextEditable = true; UI.Search.Active = true end
+    if UI. then UI.Search.TextEditable = true; UI.Search.Active = true end
     if UI.SpeedBox then UI.SpeedBox.TextEditable = true; UI.SpeedBox.Active = true end
     if UI._2Routenumber then UI._2Routenumber.TextEditable = true; UI._2Routenumber.Active = true end
     
