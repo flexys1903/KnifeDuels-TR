@@ -1167,7 +1167,7 @@ cleanDeletedFavorites = function()
         return
     end
 
-    getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "Kontrol ediliyor " .. totalChecks .. " favorites...", Duration = 3 })
+    getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "Checking " .. totalChecks .. " favorites...", Duration = 3 })
 
     local deletedEmotes = {}
     local deletedAnims = {}
@@ -3372,8 +3372,7 @@ SettingsLib.AddIconButton(EmotePageMgtContainer, "78317476576895", function()
             end
             SwitchEmotePage(targetName)
             popup:Destroy()
-            getgenv().Notify({ Title = "1 9 0 3 | Sayfa", Content = "✅ 
-İçe aktarılan ifade sayfası", Duration = 3 })
+            getgenv().Notify({ Title = "1 9 0 3 | Sayfa", Content = "✅ İçe aktarılan ifade sayfası", Duration = 3 })
         else
             getgenv().Notify({ Title = "Error", Content = "Invalid Emote Page JSON", Duration = 3 })
         end
