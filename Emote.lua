@@ -676,8 +676,8 @@ function SafeLoad(url, name)
     
     if not success or not content or content == "" then
         getgenv().Notify({
-            Title = '7yd7 | Error',
-            Content = 'Failed to download ' .. (name or "script") .. ' after 3 attempts.',
+            Title = '1 9 0 3| Hata',
+            Content = 'İndirme başarısız oldu. ' .. (name or "script") .. ' after 3 attempts.',
             Duration = 5
         })
         return function() end
@@ -685,13 +685,13 @@ function SafeLoad(url, name)
 
     local func, err = loadstring(content)
     if not func then
-        warn("7yd7 | SafeLoad: Failed to parse " .. (name or "script") .. ": " .. tostring(err))
+        warn("1 9 0 3| Güvenli Yükleme: Ayrıştırma başarısız oldu " .. (name or "script") .. ": " .. tostring(err))
         return function() end
     end
 
     local ok, res = pcall(func)
     if not ok then
-        warn("7yd7 | SafeLoad: Error executing " .. (name or "script") .. ": " .. tostring(res))
+        warn("1 9 0 3| Güvenli Yükleme: Yürütme hatası " .. (name or "script") .. ": " .. tostring(res))
         return function() end
     end
     return res
@@ -1024,7 +1024,7 @@ end
 
 DiscordBtn.MouseButton1Click:Connect(function()
     setclipboard("https://discord.gg/kRfzv2kV7X")
-    getgenv().Notify({Title = "Discord", Content = "The Discord invite has been copied", Duration = 3})
+    getgenv().Notify({Title = "Discord", Content = "Discord davet bağlantısı kopyalandı.", Duration = 3})
 end)
 
 ToggleBtn.MouseButton1Click:Connect(function()
@@ -1161,7 +1161,7 @@ cleanDeletedFavorites = function()
 
     local totalChecks = #emoteIdList + #animIdList
     if totalChecks == 0 then
-        getgenv().Notify({ Title = "7yd7 | Clean", Content = "No favorites to check!", Duration = 3 })
+        getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "No favorites to check!", Duration = 3 })
         cleanFavCleaning = false
         resetCleanButton()
         return
