@@ -2669,7 +2669,7 @@ State.exitCustomAnimationEditor = function()
         State.CustomAnimForceVisibleConn = nil 
     end
 
-    if UI. then UI.Search.TextEditable = true; UI.Search.Active = true end
+    if UI.Search then UI.Search.TextEditable = true; UI.Search.Active = true end
     if UI.SpeedBox then UI.SpeedBox.TextEditable = true; UI.SpeedBox.Active = true end
     if UI._2Routenumber then UI._2Routenumber.TextEditable = true; UI._2Routenumber.Active = true end
     
@@ -3372,7 +3372,7 @@ SettingsLib.AddIconButton(EmotePageMgtContainer, "78317476576895", function()
             end
             SwitchEmotePage(targetName)
             popup:Destroy()
-            getgenv().Notify({ Title = "1 9 0 3 | Sayfa", Content = "✅ İçe aktarılan ifade sayfası", Duration = 3 })
+            getgenv().Notify({ Title = "7yd7 | Page", Content = "✅ Imported Emote page", Duration = 3 })
         else
             getgenv().Notify({ Title = "Error", Content = "Invalid Emote Page JSON", Duration = 3 })
         end
@@ -5342,8 +5342,8 @@ applyAnimation = function(animationData)
     
         if not bundledItems and not animationData.isCustomSet then
         getgenv().Notify({
-            Title = '1 9 0 3 | Animasyon Hatası', 
-            Content = '??? Paketlenmiş öğe bulunamadı',
+            Title = '7yd7 | Animation Error', 
+            Content = '??? No bundled items found',
             Duration = 3
         })
         return
@@ -7890,7 +7890,7 @@ enterHUDEditor = function()
             }
         }
         setclipboard(HttpService:JSONEncode(data))
-        getgenv().Notify({ Title = "1 9 0 3 | HUD Ayarlama", Content = "✅ HUD ayarları kopyalandı", Duration = 2 })
+        getgenv().Notify({ Title = "7yd7 | HUD Editor", Content = "✅ HUD settings copied", Duration = 2 })
     end))
 
     table.insert(HUD.Connections, importBtn.MouseButton1Click:Connect(function()
@@ -7960,7 +7960,7 @@ enterHUDEditor = function()
                 HUD.UndoStack = {}
                 if backdrop then backdrop:Destroy() end
                 popup:Destroy()
-                getgenv().Notify({ Title = "1 9 0 3 | HUD Ayaralama", Content = "✅ HUD ayarları içe aktarıldı", Duration = 2 })
+                getgenv().Notify({ Title = "7yd7 | HUD Editor", Content = "✅ HUD settings imported", Duration = 2 })
             else
                 getgenv().Notify({ Title = "Error", Content = "Invalid HUD JSON", Duration = 3 })
             end
@@ -8077,7 +8077,7 @@ enterHUDEditor = function()
         end
         updatePageDisplay()
         
-        getgenv().Notify({ Title = "1 9 0 3 | HUD Ayarlama", Content = "🔄 Tüm tasarımlar ve çerçeveler bütünüyle sıfırlandı", Duration = 3 })
+        getgenv().Notify({ Title = "7yd7 | HUD Editor", Content = "🔄 All designs and frames have been fully reset", Duration = 3 })
     end))
 
     local propertiesPanel = Instance.new("Frame")
@@ -8371,7 +8371,7 @@ enterHUDEditor = function()
         updateHUDLayouts()
         ApplyUIVisibility()
         pcall(function() updateGUIColors() end)
-        getgenv().Notify({ Title = "1 9 0 3 | HUD Ayarlama", Content = "🗑️ Özel çerçeve silindi", Duration = 2 })
+        getgenv().Notify({ Title = "7yd7 | HUD Editor", Content = "🗑️ Custom Frame deleted", Duration = 2 })
     end))
 
 
@@ -8668,10 +8668,10 @@ enterHUDEditor = function()
         setupElementDragging(newName, cf, getMovableElements(), snapGuideV, snapGuideH)
         selectHUDElement(newName, cf)
         
-        getgenv().Notify({ Title = "1 9 0 3 | HUD Ayarlama", Content = "➕ Özel çerçeve eklendi!", Duration = 2 })
+        getgenv().Notify({ Title = "7yd7 | HUD Editor", Content = "➕ Custom Frame added!", Duration = 2 })
     end))
 
-    getgenv().Notify({ Title = "1 9 0 3 | HUD Ayarlama", Content = "✏️ Yeniden konumlandırmak için öğeleri sürükleyin", Duration = 5 })
+    getgenv().Notify({ Title = "7yd7 | HUD Editor", Content = "✏️ Drag elements to reposition", Duration = 5 })
 end
 
 State.RefreshUI = function()
