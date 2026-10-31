@@ -3685,8 +3685,8 @@ BtnImportSettings.MouseButton1Click:Connect(function() HandleImportPrompt("Setti
 BtnImportFavorites.MouseButton1Click:Connect(function() HandleImportPrompt("Favorites") end)
 
 getgenv().Notify({
-    Title = '7yd7 | Emote',
-    Content = '⚠️ Script loading...',
+    Title = '1 9 0 3 | Emote',
+    Content = '⚠️ ig:utku.ss',
     Duration = 5
 })
 
@@ -5195,8 +5195,8 @@ toggleFavorite = function(emoteId, emoteName)
     if found then
         table.remove(State.favoriteEmotes, index)
         getgenv().Notify({
-            Title = '7yd7 | Favorite System',
-            Content = '🗑️ Removed "' .. emoteName .. '" from favorites',
+            Title = '1 9 0 3| Favori Sistemi',
+            Content = '🗑️ Kaldırıldı"' .. emoteName .. '" from favorites',
             Duration = 3
         })
     else
@@ -5205,8 +5205,8 @@ toggleFavorite = function(emoteId, emoteName)
             name = emoteName .. " - ⭐"
         })
         getgenv().Notify({
-            Title = '7yd7 | Favorite System',
-            Content = '✅ Added "' .. emoteName .. '" to favorites',
+            Title = '1 9 0 3| Favori Sistemi',
+            Content = '✅ Eklendi "' .. emoteName .. '" to favorites',
             Duration = 3
         })
     end
@@ -5237,8 +5237,8 @@ toggleFavoriteAnimation = function(animationData)
     if found then
         table.remove(State.favoriteAnimations, index)
         getgenv().Notify({
-            Title = '7yd7 | Favorite System',
-            Content = '🗑️ Removed "' .. animationData.name .. '" from favorites',
+            Title = '1 9 0 3| Favori Sistemi',
+            Content = '🗑️ Kaldırıldı"' .. animationData.name .. '" from favorites',
             Duration = 3
         })
     else
@@ -5250,8 +5250,8 @@ toggleFavoriteAnimation = function(animationData)
             customSetName = IsCustomSetData(animationData) and (type(animationData.name) == "string" and animationData.name:gsub("%s*%-.*$", "") or animationData.name) or nil
         })
         getgenv().Notify({
-            Title = '7yd7 | Favorite System',
-            Content = '✅ Added "' .. animationData.name .. '" to favorites',
+            Title = '1 9 0 3| Favori Sistemi',
+            Content = '✅ Eklendi "' .. animationData.name .. '" to favorites',
             Duration = 3
         })
     end
@@ -5326,8 +5326,8 @@ applyAnimation = function(animationData)
     
     if not animate or not humanoid then
         getgenv().Notify({
-            Title = '7yd7 | Animation Error',
-            Content = '❌ Animate or Humanoid not found',
+            Title = '1 9 0 3| Animasyon Hatası',
+            Content = '❌ Animasyon Bulunamadı',
             Duration = 3
         })
         return
@@ -5526,8 +5526,8 @@ handleSectorAction = function(index)
         local itemData = pickRandomItemForMode()
         if not itemData then
             getgenv().Notify({
-                Title = '7yd7 | Random',
-                Content = '? No valid random item found',
+                Title = '1 9 0 3| Rastgele',
+                Content = '? Geçerli rastgele öğe bulunamadı.',
                 Duration = 3
             })
             return
@@ -5548,7 +5548,7 @@ handleSectorAction = function(index)
                 end
                 State.CustomAnimations.Sets[State.currentCustomAnimationName][cat][name] = animIdToSave
                 State.SaveCustomAnimations(State.CustomAnimations)
-                getgenv().Notify({ Title = "7yd7 | Saved", Content = "✅ Saved " .. name, Duration = 3 })
+                getgenv().Notify({ Title = "1 9 0 3| Kayıt", Content = "✅ Kaydedildi " .. name, Duration = 3 })
                 if State.RefreshCustomAnimUI then State.RefreshCustomAnimUI() end
                 if refreshCustomAnimationState then refreshCustomAnimationState(true) end
                 State.exitCustomAnimationEditor()
@@ -5671,7 +5671,7 @@ handleSectorAction = function(index)
             end
             State.CustomAnimations.Sets[State.currentCustomAnimationName][cat][name] = animIdToSave
             State.SaveCustomAnimations(State.CustomAnimations)
-            getgenv().Notify({ Title = "7yd7 | Saved", Content = "✅ Saved " .. name, Duration = 3 })
+            getgenv().Notify({ Title = "1 9 0 3| Kayıt", Content = "✅ Kaydedildi " .. name, Duration = 3 })
             
             if State.RefreshCustomAnimUI then State.RefreshCustomAnimUI() end
             if refreshCustomAnimationState then refreshCustomAnimationState(true) end
@@ -5917,7 +5917,7 @@ function fetchAllEmotes()
             local emoteData, total = fetchFromUrl()
             if emoteData then
                 applyData(emoteData, total)
-                getgenv().Notify({Title = '7yd7 | Emote', Content = "📦 Emotes loaded", Duration = 3})
+                getgenv().Notify({Title = '1 9 0 3| Animasyon', Content = "📦 Animasyonlar Yüklend!", Duration = 3})
                 return
             end
             task.wait(3)
@@ -6063,8 +6063,8 @@ end
 function searchEmotes(searchTerm)
     if State.isLoading then
         getgenv().Notify({
-            Title = '7yd7 | Emote',
-            Content = '⚠️ Loading please wait...',
+            Title = '1 9 0 3| Animasyon',
+            Content = '⚠️ Yükleniyor Lütfen Bekleyin...',
             Duration = 5
         })
         return
@@ -6131,8 +6131,8 @@ end
 function searchAnimations(searchTerm)
     if State.isLoading then
         getgenv().Notify({
-            Title = '7yd7 | Animation',
-            Content = '⚠️ Loading please wait...',
+            Title = '1 9 0 3| Animasyon',
+            Content = '⚠️ Lütfen Bekleyin...',
             Duration = 5
         })
         return
@@ -6509,8 +6509,8 @@ function toggleEmoteWalk()
 
     if State.emotesWalkEnabled then
         getgenv().Notify({
-            Title = '7yd7 | Emote Freeze',
-            Content = "🔒 Emote freeze ON",
+            Title = '1 9 0 3| Animasyon Dondurma',
+            Content = "🔒 Animasyon Dondurma Açıldı",
             Duration = 5
         })
 
@@ -6521,8 +6521,8 @@ function toggleEmoteWalk()
         end
     else
         getgenv().Notify({
-            Title = '7yd7 | Emote Freeze',
-            Content = '🔓 Emote freeze OFF',
+            Title = '1 9 0 3| Animasyon Dondurma',
+            Content = '🔓 Animasyon Dondurma Kapalı',
             Duration = 5
         })
         task.wait(0.1)
@@ -6543,16 +6543,16 @@ function toggleSpeedEmote()
 
     if State.speedEmoteEnabled then
         getgenv().Notify({
-            Title = '7yd7 | Speed Emote',
-            Content = "⚡ Speed Emote ON",
+            Title = '1 9 0 3| Hızlı Animasyon',
+            Content = "⚡ Animasyon Hızlandırma Açık",
             Duration = 5
         })
         task.wait(0.1)
         stopCurrentEmote()
     else
         getgenv().Notify({
-            Title = '7yd7 | Speed Emote',
-            Content = '⚡ Speed Emote OFF',
+            Title = '1 9 0 3| Hızlı Animasyon',
+            Content = '⚡ Animasyon Hızlandırma Kapalı',
             Duration = 5
         })
         task.wait(0.1)
@@ -6570,8 +6570,8 @@ function toggleFavoriteMode()
     if State.favoriteEnabled then
         ApplyFavoriteButtonVisual()
         getgenv().Notify({
-            Title = '7yd7 | Favorite System',
-            Content = "🔒 Favorite ON",
+            Title = '1 9 0 3| Favori Sistemi',
+            Content = "🔒 Favoriler Açık",
             Duration = 5
         })
 
@@ -6586,8 +6586,8 @@ function toggleFavoriteMode()
     else
         ApplyFavoriteButtonVisual()
         getgenv().Notify({
-            Title = '7yd7 | Favorite System',
-            Content = '🔓 Favorite OFF',
+            Title = '1 9 0 3| Favori Sistemi',
+            Content = '🔓 Favoriler Kapalı',
             Duration = 3
         })
         
@@ -6640,14 +6640,14 @@ function toggleAutoReload()
     
     if getgenv().autoReloadEnabled then
         getgenv().Notify({
-            Title = '7yd7 | Auto Reload Animation',
-            Content = "🔄 Auto Reload ON",
+            Title = '1 9 0 3| Otomatik Animasyon Yenileme',
+            Content = "🔄 Otomatik Animasyon Yenileme Açık",
             Duration = 5
         })
     else
         getgenv().Notify({
-            Title = '7yd7 | Auto Reload Animation',
-            Content = '🔄 Auto Reload OFF',
+            Title = '1 9 0 3| Otomatik Animasyon Yenileme',
+            Content = '🔄 Otomatik Animasyon Yenileme Kapalı',
             Duration = 3
         })
     end
@@ -6892,8 +6892,8 @@ function connectEvents()
                     end)
                     
                     getgenv().Notify({
-                        Title = '7yd7 | Animation',
-                        Content = '📄 Changed to Emote > Animation Mode',
+                        Title = '1 9 0 3| Animasyon',
+                        Content = '📄 İfadeye dönüştürüldü > Animasyon Modu',
                         Duration = 3
                     })
 
@@ -6918,8 +6918,8 @@ function connectEvents()
                     end
                     
                     getgenv().Notify({
-                        Title = '7yd7 | Emote', 
-                        Content = '📄 Changed to Animation > Emote Mode',
+                        Title = '1 9 0 3| Animasyon', 
+                        Content = '📄 Animasyona dönüştürüldü > Emoji Modu',
                         Duration = 3
                     })
                 end
