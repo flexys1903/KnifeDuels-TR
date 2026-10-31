@@ -1161,13 +1161,13 @@ cleanDeletedFavorites = function()
 
     local totalChecks = #emoteIdList + #animIdList
     if totalChecks == 0 then
-        getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "No favorites to check!", Duration = 3 })
+        getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "Kontrol edilecek favori yok!", Duration = 3 })
         cleanFavCleaning = false
         resetCleanButton()
         return
     end
 
-    getgenv().Notify({ Title = "7yd7 | Clean", Content = "Checking " .. totalChecks .. " favorites...", Duration = 3 })
+    getgenv().Notify({ Title = "1 9 0 3| Temizlik", Content = "Checking " .. totalChecks .. " favorites...", Duration = 3 })
 
     local deletedEmotes = {}
     local deletedAnims = {}
@@ -1302,8 +1302,8 @@ cleanDeletedFavorites = function()
     end)
 
     getgenv().Notify({
-        Title = "7yd7 | Cleaned",
-        Content = "Removed " .. removedEmotes .. " deleted emote" .. (removedEmotes == 1 and "" or "s") .. " & " .. removedAnims .. " deleted animation" .. (removedAnims == 1 and "" or "s"),
+        Title = "1 9 0 3| Temizlendi",
+        Content = "Kaldırıldı " .. removedEmotes .. " deleted emote" .. (removedEmotes == 1 and "" or "s") .. " & " .. removedAnims .. " deleted animation" .. (removedAnims == 1 and "" or "s"),
         Duration = 5
     })
     cleanFavCleaning = false
@@ -1573,7 +1573,7 @@ end
 
 local ThemeTab = SettingsLib.CreateTab("Theme", 3)
 
-local DiscordPromo = SettingsLib.AddItem(ThemeTab, "WANT THEMES?", "Join our Discord for themes!")
+local DiscordPromo = SettingsLib.AddItem(ThemeTab, "WANT THEMES?", "Temalar için Discord sunucumuza katılın.!")
 DiscordPromo.LayoutOrder = -1
 
 local CopyBtn = SettingsLib:Create("TextButton", {
@@ -1589,7 +1589,7 @@ local CopyBtn = SettingsLib:Create("TextButton", {
 
 CopyBtn.MouseButton1Click:Connect(function()
     setclipboard("https://discord.gg/kRfzv2kV7X")
-    getgenv().Notify({Title = "Discord", Content = "Link copied to clipboard!", Duration = 3})
+    getgenv().Notify({Title = "Discord", Content = "Bağlantı panoya kopyalandı!", Duration = 3})
 end)
 
 local ThemeConfigPath = "7yd7/EmoteThemes.json"
@@ -2707,7 +2707,7 @@ end
 State.enterCustomAnimationEditor = function(category, animName)
     if State.customAnimationEditorActive then return end
     if State.currentCustomAnimationName == "Default" then
-        getgenv().Notify({ Title = "7yd7 | Error", Content = "Cannot edit Default Animation set. Create a new one!", Duration = 3 })
+        getgenv().Notify({ Title = "1 9 0 3| Hata", Content = "Varsayılan Animasyon setini düzenleyemezsiniz. Yeni bir tane oluşturun!", Duration = 3 })
         return
     end
 
@@ -2815,7 +2815,7 @@ State.enterCustomAnimationEditor = function(category, animName)
 
     if UI._2Routenumber then UI._2Routenumber.TextEditable = false; UI._2Routenumber.Active = false; pcall(function() UI._2Routenumber:ReleaseFocus() end) end
 
-    getgenv().Notify({ Title = "7yd7 | Animation Editor", Content = "🖱️ Select an animation from the wheel to set for " .. animName, Duration = 5 })
+    getgenv().Notify({ Title = "1 9 0 3| Animasyon Editörü", Content = "🖱️ Ayarlanacak animasyonu tekerlekten seçin. " .. animName, Duration = 5 })
 end
 
 State.CustomAnimTab = SettingsLib.CreateTab("Animation", 4)
@@ -3081,7 +3081,7 @@ SettingsLib.AddIconButton(CustomAnimMgtContainer, "78317476576895", function()
             if State.ApplyCustomAnimIconUI then State.ApplyCustomAnimIconUI() end
             if refreshCustomAnimationState then refreshCustomAnimationState(false) end
             popup:Destroy()
-            getgenv().Notify({ Title = "7yd7 | Animation", Content = "✅ Imported custom animations", Duration = 3 })
+            getgenv().Notify({ Title = "1 9 0 3| Animasyon", Content = "✅ İçe aktarılan özel animasyonlar", Duration = 3 })
         else
             getgenv().Notify({ Title = "Error", Content = "Invalid JSON", Duration = 3 })
         end
@@ -8803,16 +8803,16 @@ end)
 if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
     SafeLoad("https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/GUIS/OpenEmote.lua", "Open Emote")
     getgenv().Notify({
-        Title = '7yd7 | Emote Mobile',
-        Content = '📱 Added emote open button for ease of use',
+        Title = '1 9 0 3| Telefonda',
+        Content = '📱 Kullanım kolaylığı için ifade açma düğmesi eklendi.',
         Duration = 10
     })
 end
 
 if UserInputService.KeyboardEnabled then
     getgenv().Notify({
-        Title = '7yd7 | Emote PC',
-        Content = '💻 Open menu press button "."',
+        Title = '1 9 0 3| Bilgisayar',
+        Content = '💻 Menüyü açmak için düğmeye basın. "."',
         Duration = 10
     })
 end
